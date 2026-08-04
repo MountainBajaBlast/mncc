@@ -1,0 +1,9 @@
+int main() {
+  int a = 15;
+  
+  if (a == 15) {
+      return a;
+  } else {
+      return 0;
+  }
+}
