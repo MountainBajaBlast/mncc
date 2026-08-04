@@ -1,0 +1,5 @@
+mncc
+mncc_asan
+output_program
+hello
+*.dSYM/
