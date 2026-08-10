@@ -3,9 +3,6 @@
 
 #include "../IR/ir.h"
 
-
-
-void optimize_ir(IRGraph* graph);
+void optimize_ir(IRGraph *graph);
 
 #endif
-

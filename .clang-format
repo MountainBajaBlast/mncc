@@ -1,0 +1,13 @@
+Language: C
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: Never
+  BeforeElse: false
+  
+
+IndentWidth: 8
+TabWidth: 8
+UseTab: Always
+
+MaxEmptyLinesToKeep: 3
