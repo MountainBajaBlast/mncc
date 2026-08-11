@@ -20,7 +20,6 @@ The compiler is under development. Currently it supports: variables, constants, 
 
 ```sh
 make
-sudo cp mncc /usr/local/bin/mncc
 ```
 
 ## Usage
@@ -28,16 +27,10 @@ sudo cp mncc /usr/local/bin/mncc
 `mncc` is the compiler itself:
 
 ```sh
-mncc program.txt -o program
+./mncc program.txt -o program
 ./program
 ```
-
-Other commands:
-
-```sh
-make asan     # build mncc with AddressSanitizer (for finding memory bugs)
-make clean    # remove build artifacts
-```
+`
 
 ## Layout
 
@@ -80,7 +73,6 @@ GPL-3.0.
 
 ```sh
 make
-sudo cp mncc /usr/local/bin/mncc
 ```
 
 ## Использование
@@ -88,16 +80,10 @@ sudo cp mncc /usr/local/bin/mncc
 `mncc` — это сам компилятор:
 
 ```sh
-mncc program.txt -o program
+./mncc program.txt -o program
 ./program
 ```
 
-Другие команды:
-
-```sh
-make asan     # собрать mncc с AddressSanitizer (для поиска багов с памятью)
-make clean    # удалить артефакты сборки
-```
 
 ## Структура
 
