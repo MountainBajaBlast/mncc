@@ -30,7 +30,12 @@ make
 ./mncc program.txt -o program
 ./program
 ```
-`
+The mncc  doesn't support print function yet so use the 
+
+```sh
+echo $?
+```
+command to see yout program output
 
 ## Layout
 
@@ -97,6 +102,15 @@ LIRA/         аллокация регистров
 codegen/      кодоген ARM64
 main.c        точка входа
 ```
+
+
+mncc ещё не поддерживает print-функции так что используйте
+
+```sh
+echo $?
+```
+команду чтобы увидеть результат вашей программы
+
 
 ## Лицензия
 
