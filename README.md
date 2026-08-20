@@ -12,7 +12,7 @@ The compiler is under development. Currently it supports: variables, constants, 
 - **IR** — my own IR with CFG and SSA form, dominator tree with dominance frontier for placing phi nodes.
 - **Optimizer** — optimizations over the IR.
 - **Register allocation** — liveness analysis + linear scan combined with a greedy algorithm.
-- **Codegen** — emits ARM64 assembly and assembles it into a native binary.
+- **Codegen & Encoder** — An encoder turns instructions into bits, makes an object file, and sends that object file to the linker.
 
 ## Build
 
@@ -70,7 +70,7 @@ GPL-3.0.
 - **IR** — собственный IR с CFG и SSA-формой, дерево доминаторов с границами доминирования для расстановки phi-узлов.
 - **Оптимизатор** — оптимизации поверх IR.
 - **Аллокация регистров** — анализ живости + линейное сканирование, совмещённое с жадным алгоритмом.
-- **Кодоген** — выдаёт ассемблер ARM64 и собирает его в нативный бинарник.
+- **Кодоген и Энкодер** — имеется энкодер который переводит инструкции в  биты и создаёт объектный файл, а после отдаёт объектный файл линковщику
 
 ## Сборка
 

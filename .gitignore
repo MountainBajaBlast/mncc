@@ -3,3 +3,17 @@ mncc_asan
 output_program
 hello
 *.dSYM/
+*.o
+*.swp
+new
+programb
+test1b
+test2b
+hello
+helo
+hello.c
+new
+txt
+hehe.c
+new.c
+

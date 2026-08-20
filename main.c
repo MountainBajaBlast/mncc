@@ -168,7 +168,15 @@ int main(int argc, char *argv[])
 
 	rewrite_registers(ssa_graph, cointerval);
 
-	compile_to_binary(ssa_graph, output_path);
+	RISCinstruct *insns = NULL;
+	int insn_count = 0;
+
+	compile_to_binary(ssa_graph, &insns, &insn_count);
+
+	write_object_file(insns, insn_count, "temp.o");
+	link_object("temp.o", output_path);
+
+	free(insns);
 
 	free_intervals(cointerval);
 	free(quad_liveness_array);
