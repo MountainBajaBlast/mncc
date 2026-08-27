@@ -10,4 +10,4 @@ IndentWidth: 8
 TabWidth: 8
 UseTab: Always
 
-MaxEmptyLinesToKeep: 3
+MaxEmptyLinesToKeep: 4
