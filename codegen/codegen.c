@@ -1,3 +1,4 @@
+
 #include "codegen.h"
 #include "enc.h"
 #include <stdio.h>
@@ -163,6 +164,51 @@ void compile_to_binary(IRGraph *graph, RISCinstruct **out_insns, int *out_count)
 	*out_insns = insns;
 	*out_count = idx;
 }
+
+void compile_program_to_binary(IRProgram *program,
+			       RISCinstruct **out_insns, int *out_count,
+			       int **out_starts, char ***out_names,
+			       int *out_function_count)
+{
+	RISCinstruct *merged = NULL;
+	int total_instructions = 0;
+	int label_base = 0;
+
+	int *starts = calloc(program->count, sizeof(int));
+	char **names = calloc(program->count, sizeof(char *));
+
+	for (int i = 0; i < program->count; i++) {
+		IRGraph *current = program->graphs[i];
+
+		for (int block = 0; block < current->block_count; block++)
+			current->blocks[block]->id_block += label_base;
+		label_base += current->block_count;
+
+		RISCinstruct *piece = NULL;
+		int piece_count = 0;
+		compile_to_binary(current, &piece, &piece_count);
+
+		starts[i] = total_instructions;
+		names[i] = current->func_name;
+
+		if (piece_count > 0) {
+			merged = realloc(merged,
+					 (total_instructions + piece_count) *
+					     sizeof(RISCinstruct));
+			memcpy(merged + total_instructions, piece,
+			       piece_count * sizeof(RISCinstruct));
+			total_instructions += piece_count;
+			free(piece);
+		}
+	}
+
+	*out_insns = merged;
+	*out_count = total_instructions;
+	*out_starts = starts;
+	*out_names = names;
+	*out_function_count = program->count;
+}
+
 
 
 

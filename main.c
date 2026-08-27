@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
 	advance();
 
-	ASTNode *root = parse_function();
+	ASTNode *root = parse_file();
 	if (!root) {
 		fprintf(stderr, "Error: parsing failed\n");
 		free(source_code);
@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
 
 	check_semantics(root, global_sym_table);
 
-	IRGraph *ssa_graph = compile_to_ir(global_sym_table, root);
-	if (!ssa_graph) {
+	IRProgram *program = compile_to_ir(global_sym_table, root);
+	if (!program || program->count == 0) {
 		fprintf(stderr, "Error: IR generation failed\n");
 		free_table(global_sym_table);
 		free_ast(root);
@@ -119,71 +119,87 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	build_cfg(ssa_graph);
-	into_ssa(ssa_graph);
+	for (int i = 0; i < program->count; i++) {
+		IRGraph *current_graph = program->graphs[i];
 
-	optimize_ir(ssa_graph);
-	out_of_ssa(ssa_graph);
+		build_cfg(current_graph);
+		into_ssa(current_graph);
 
-	size_t total_quads = 0;
-	BasicBlock *current_block = ssa_graph->head;
-	while (current_block != NULL) {
-		Quadriple *q = current_block->head;
-		while (q != NULL) {
-			total_quads++;
-			if (q == current_block->tail)
-				break;
-			q = q->next;
+		optimize_ir(current_graph);
+		out_of_ssa(current_graph);
+
+		size_t total_quads = 0;
+		BasicBlock *current_block = current_graph->head;
+		while (current_block != NULL) {
+			Quadriple *q = current_block->head;
+			while (q != NULL) {
+				total_quads++;
+				if (q == current_block->tail)
+					break;
+				q = q->next;
+			}
+			current_block = current_block->next_block;
 		}
-		current_block = current_block->next_block;
+
+		QuadLiveness *quad_liveness_array =
+		    calloc(total_quads, sizeof(QuadLiveness));
+
+		size_t block_count = 0;
+		current_block = current_graph->head;
+		while (current_block != NULL) {
+			block_count++;
+			current_block = current_block->next_block;
+		}
+		BlockLiveness *block_liveness_array =
+		    calloc(block_count, sizeof(BlockLiveness));
+
+		compute_local_liveness(current_graph, quad_liveness_array,
+				       block_liveness_array);
+		compute_global_liveness(current_graph, quad_liveness_array,
+					block_liveness_array);
+
+		CollectIntervals *cointerval =
+		    create_intervals(current_graph->reg_count);
+
+		build_intervals(current_graph, quad_liveness_array,
+				block_liveness_array, cointerval);
+		sort_intervals(cointerval);
+
+		PhysRegTrack reg_track;
+		for (int reg = 0; reg < 31; reg++)
+			reg_track.phys_reg[reg] = -1;
+		greedy_allocate(cointerval, &reg_track);
+
+		rewrite_registers(current_graph, cointerval);
+
+		free_intervals(cointerval);
+		free(quad_liveness_array);
+		free(block_liveness_array);
 	}
-
-	QuadLiveness *quad_liveness_array =
-	    calloc(total_quads, sizeof(QuadLiveness));
-
-	size_t block_count = 0;
-	current_block = ssa_graph->head;
-	while (current_block != NULL) {
-		block_count++;
-		current_block = current_block->next_block;
-	}
-	BlockLiveness *block_liveness_array =
-	    calloc(block_count, sizeof(BlockLiveness));
-
-	compute_local_liveness(ssa_graph, quad_liveness_array,
-			       block_liveness_array);
-	compute_global_liveness(ssa_graph, quad_liveness_array,
-				block_liveness_array);
-
-	CollectIntervals *cointerval = create_intervals(ssa_graph->reg_count);
-
-	build_intervals(ssa_graph, quad_liveness_array, block_liveness_array,
-			cointerval);
-	sort_intervals(cointerval);
-
-	PhysRegTrack reg_track;
-	for (int i = 0; i < 31; i++)
-		reg_track.phys_reg[i] = -1;
-	greedy_allocate(cointerval, &reg_track);
-
-	rewrite_registers(ssa_graph, cointerval);
 
 	RISCinstruct *insns = NULL;
 	int insn_count = 0;
+	int *function_starts = NULL;
+	char **function_names = NULL;
+	int function_count = 0;
 
-	compile_to_binary(ssa_graph, &insns, &insn_count);
+	compile_program_to_binary(program, &insns, &insn_count,
+				  &function_starts, &function_names,
+				  &function_count);
 
-	write_object_file(insns, insn_count, "temp.o");
+	write_object_file(insns, insn_count, "temp.o",  function_starts,
+			  function_names, function_count);
 	link_object("temp.o", output_path);
 
 	free(insns);
-
-	free_intervals(cointerval);
-	free(quad_liveness_array);
-	free(block_liveness_array);
+	free(function_starts);
+	free(function_names);
 
 	free_ast(root);
-	free_ir_graph(ssa_graph);
+	for (int i = 0; i < program->count; i++)
+		free_ir_graph(program->graphs[i]);
+	free(program->graphs);
+	free(program);
 	free_table(global_sym_table);
 	free(source_code);
 

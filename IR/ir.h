@@ -112,6 +112,12 @@ typedef struct IRResult {
 	BasicBlock *block;
 } IRResult;
 
+
+typedef struct IRProgram {
+    IRGraph **graphs;
+    int count;
+} IRProgram;
+
 Operand *create_operand_num(long long value);
 Operand *create_operand_var(char *name);
 Operand *create_operand_reg(IRGraph *graph);
@@ -133,17 +139,19 @@ IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table,
 		     IRGraph *graph);
 IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table,
 			  IRGraph *graph);
-IRGraph *compile_to_ir(HashTable *table, ASTNode *node);
-
+IRProgram *compile_to_ir(HashTable *table, ASTNode *node);
+int dsu_eval(DominatorTree *domtree, int v);
 void bb_add_phi(BasicBlock *block, int result_reg, int reg_index,
 		int from_block);
 void free_phis(BasicBlock *block);
 void bb_add_successor(BasicBlock *block, BasicBlock *succ);
 void bb_add_predecessor(BasicBlock *block, BasicBlock *pred);
 void build_cfg(IRGraph *graph);
-
+int dsu_find(DominatorTree *domtree, int v);
 DominatorTree *create_dominator_tree(IRGraph *graph);
 void free_domtree(DominatorTree *domtree);
+void df_add(BasicBlock *block, BasicBlock *x);
+void dsu_link(DominatorTree *domtree, int v, int w);
 void build_dominators(DominatorTree *domtree);
 int dominates(DominatorTree *domtree, BasicBlock *a, BasicBlock *b);
 BasicBlock *get_idom(DominatorTree *domtree, BasicBlock *block);

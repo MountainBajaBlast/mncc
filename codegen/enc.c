@@ -111,162 +111,9 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 }
 
 
-uint32_t enc_mov_reg(int regdest, int reg)
-{
-	return 0xAA0003E0 | ((uint32_t)reg << 16) | ((uint32_t)regdest << 0);
-}
 
-uint32_t enc_movz(int reg, uint16_t chunk, int chunk_num)
-{
-	return 0xD2800000 | ((uint32_t)(reg & 0x1F) << 0) |
-	       ((uint32_t)(chunk & 0xFFFF) << 5) |
-	       ((uint32_t)(chunk_num & 3) << 21);
-}
 
-uint32_t enc_movk(int reg, uint16_t chunk, int chunk_num)
-{
-	return 0xF2800000 | ((uint32_t)(reg & 0x1F) << 0) |
-	       ((uint32_t)(chunk & 0xFFFF) << 5) |
-	       ((uint32_t)(chunk_num & 3) << 21);
-}
 
-uint32_t enc_add_num(int regdest, int regn, int num)
-{
-	return 0x91000000 | ((uint32_t)(num & 0xFFF) << 10) |
-	       ((uint32_t)regn << 5) | ((uint32_t)regdest << 0);
-}
-
-uint32_t enc_add_reg(int regdest, int regn, int regm)
-{
-	return 0x8B000000 | ((uint32_t)regm << 16) | ((uint32_t)regn << 5) |
-	       ((uint32_t)regdest << 0);
-}
-
-uint32_t enc_sub_num(int regdest, int regn, int num)
-{
-	return 0xD1000000 | ((uint32_t)regn << 5) |
-	       ((uint32_t)(num & 0xFFF) << 10) | ((uint32_t)regdest << 0);
-}
-
-uint32_t enc_sub_reg(int regdest, int regm, int regn)
-{
-	return 0xCB000000 | ((uint32_t)regm << 16) | ((uint32_t)regn << 5) |
-	       ((uint32_t)regdest << 0);
-}
-
-uint32_t enc_mul(int regdest, int regn, int regm)
-{
-	return 0x9B007C00 | ((uint32_t)regm << 16) | ((uint32_t)regn << 5) |
-	       ((uint32_t)regdest << 0);
-}
-
-uint32_t enc_sdiv(int regdest, int regn, int regm)
-{
-	return 0x9AC00C00 | ((uint32_t)regm << 16) | ((uint32_t)regn << 5) |
-	       ((uint32_t)regdest << 0);
-}
-
-uint32_t enc_cmp_num(int regn, int num)
-{
-	return 0xF100001F | ((uint32_t)regn << 5) |
-	       ((uint32_t)(num & 0xFFF) << 10);
-}
-
-uint32_t enc_cmp_reg(int regn, int regm)
-{
-	return 0xEB00001F | ((uint32_t)regn << 5) | ((uint32_t)regm << 16);
-}
-
-uint32_t enc_cset(int reg) { return 0x9A9F17E0 | ((uint32_t)reg & 0x1F); }
-
-uint32_t enc_b(int offset)
-{
-	return 0x14000000 | ((uint32_t)offset & 0x3FFFFFF);
-}
-
-uint32_t enc_ret_reg(int rd, int rs) { return enc_mov_reg(rd, rs); }
-
-uint32_t enc_cbnz(int reg, int offset)
-{
-	return 0xB5000000 | ((uint32_t)(offset & 0x7FFFF) << 5) |
-	       ((uint32_t)reg & 0x1F);
-}
-
-struct mach_header_64 make_mach_header(int ncmds, int sizeofcmds)
-{
-	return (struct mach_header_64){
-	    .magic = MH_MAGIC_64,
-	    .cputype = CPU_TYPE_ARM64,
-	    .filetype = MH_OBJECT,
-	    .ncmds = ncmds,
-	    .sizeofcmds = sizeofcmds,
-	};
-}
-
-struct segment_command_64 make_segment(int nsects, uint64_t vmsize)
-{
-	return (struct segment_command_64){
-	    .cmd = LC_SEGMENT_64,
-	    .cmdsize = 72 + nsects * 80,
-	    .segname = "__TEXT",
-	    .vmsize = vmsize,
-	    .filesize = vmsize,
-	    .maxprot = 7,
-	    .initprot = 7,
-	    .nsects = nsects,
-	};
-}
-
-struct section_64 make_section(uint32_t offset, uint64_t size)
-{
-	return (struct section_64){
-	    .sectname = "__text",
-	    .segname = "__TEXT",
-	    .size = size,
-	    .offset = offset,
-	    .align = 2,
-	};
-}
-
-struct symtab_command make_symtab(uint32_t symoff, int nsyms, uint32_t stroff,
-				  uint32_t strsize)
-{
-	return (struct symtab_command){
-	    .cmd = LC_SYMTAB,
-	    .cmdsize = 24,
-	    .symoff = symoff,
-	    .nsyms = nsyms,
-	    .stroff = stroff,
-	    .strsize = strsize,
-	};
-}
-
-struct nlist_64 make_nlist(uint32_t strx, uint64_t value)
-{
-	return (struct nlist_64){
-	    .n_un.n_strx = strx,
-	    .n_type = N_EXT | N_SECT,
-	    .n_sect = 1,
-	    .n_value = value,
-	};
-}
-
-uint32_t *wrap_code(uint32_t *code, int code_size, int *out_nwords)
-{
-	int total = 2 + code_size + 3;
-	uint32_t *text = calloc(total, sizeof(uint32_t));
-
-	text[0] = 0xA9BF7BFD;
-	text[1] = 0xAA0003FD;
-	memcpy(text + 2, code, code_size * 4);
-	text[code_size + 2] = 0xA8C17BFD;
-	text[code_size + 3] = 0xD2800030;
-	text[code_size + 4] = 0xD4001001;
-
-	*out_nwords = total;
-
-	return text;
-}
 
 
 void first_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
@@ -306,12 +153,79 @@ void second_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
 	}
 }
 
-void write_object_file(RISCinstruct *insns, int count, const char *obj_path)
+int split_bytes(RISCinstruct *insns, int total_instructions,
+		int *function_starts, char **function_names,
+		int function_count, uint32_t *encoded_bytes,
+		int *piece_borders, int *main_index)
+{
+	int current_word = 0;
+	int next_function = 0;
+
+	for (int instruction = 0; instruction < total_instructions;
+	     instruction++) {
+		if (next_function < function_count &&
+		    instruction == function_starts[next_function]) {
+			piece_borders[next_function] = current_word;
+			next_function++;
+		}
+		if (insns[instruction].op == OP_JMP) {
+			current_word += 1;
+                }
+		else if (insns[instruction].op == OP_JE) {
+			current_word += 2;
+                }
+		else {
+			current_word += encode_one(&insns[instruction],
+						   encoded_bytes +
+						       current_word);
+                 }
+	}
+	piece_borders[function_count] = current_word;
+
+	int found_main = -1;
+	for (int function = 0; function < function_count; function++)
+		if (strcmp(function_names[function], "main") == 0)
+			found_main = function;
+
+	if (found_main < 0) {
+		fprintf(stderr, "Error: main not found");
+		exit(1);
+	}
+
+	*main_index = found_main;
+	return 0;
+}
+
+uint32_t *append_dead_functions(uint32_t *text, uint32_t *out,
+				int *piece_borders, int function_count,
+				int main_index, int *nwords)
+{
+	for (int function = 0; function < function_count; function++) {
+		if (function == main_index)
+			continue;
+
+		int piece_start = piece_borders[function];
+		int piece_length = piece_borders[function + 1] - piece_start;
+
+		text = realloc(text,
+			       (*nwords + piece_length) * sizeof(uint32_t));
+		memcpy(text + *nwords, out + piece_start,
+		       piece_length * sizeof(uint32_t));
+		*nwords += piece_length;
+	}
+
+	return text;
+}
+
+
+void write_object_file(RISCinstruct *insns, int count, const char *obj_path,  int *function_starts, char **function_names, int function_count)
 {
 	int max_label = 0;
-	for (int i = 0; i < count; i++)
-		if (insns[i].op == OP_LABEL && insns[i].target > max_label)
+	for (int i = 0; i < count; i++) {
+		if (insns[i].op == OP_LABEL && insns[i].target > max_label) {
 			max_label = insns[i].target;
+                }
+         }      
 
 	int *label_addr = calloc(max_label + 1, sizeof(int));
 	uint32_t *out = calloc(count * 8 + 8, sizeof(uint32_t));
@@ -320,10 +234,21 @@ void write_object_file(RISCinstruct *insns, int count, const char *obj_path)
 	first_pass(insns, count, label_addr, out, &pos);
 	second_pass(insns, count, label_addr, out, &pos);
 
+        int piece_borders[function_count + 1];
+	int main_index;
+
+	split_bytes(insns, count, function_starts, function_names,
+		    function_count, out, piece_borders, &main_index);
+
 	free(label_addr);
 
+	int main_start = piece_borders[main_index];
 	int nwords;
-	uint32_t *text = wrap_code(out, pos, &nwords);
+	uint32_t *text = wrap_code(out + main_start,
+				   piece_borders[main_index + 1] - main_start,
+				   &nwords);
+        text = append_dead_functions(text, out, piece_borders,
+				     function_count, main_index, &nwords);
 	free(out);
 
 	uint32_t code_size = nwords * 4;

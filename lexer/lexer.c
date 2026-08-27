@@ -20,8 +20,8 @@ static struct {
 	char *word;
 	TokenNames type;
 } keywords[] = {{"int", TK_INTEGER},   {"return", TK_RETURN},
-		{"main", TK_FUNCNAME}, {"const", TK_CONST},
-		{"if", TK_IF},	       {"else", TK_ELSE}};
+                {"const", TK_CONST},	{"if", TK_IF},	 
+                {"else", TK_ELSE}};
 
 static void lex_ident_or_keyword(Lexer *lexer, Token *token)
 {
@@ -36,6 +36,7 @@ static void lex_ident_or_keyword(Lexer *lexer, Token *token)
 	}
 	token->text[i] = '\0';
 
+        
 	token->type = TK_VARIABLE;
 	for (size_t k = 0; k < sizeof(keywords) / sizeof(keywords[0]); k++) {
 		if (strcmp(token->text, keywords[k].word) == 0) {
@@ -43,6 +44,10 @@ static void lex_ident_or_keyword(Lexer *lexer, Token *token)
 			break;
 		}
 	}
+        if (token->type == TK_VARIABLE &&lexer->source[lexer->pos] == '(') {
+            token->type = TK_FUNCNAME;
+        }
+
 }
 
 Token next_token(Lexer *lexer)

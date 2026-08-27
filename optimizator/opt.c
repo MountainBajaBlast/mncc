@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../IR/ir.h"
-
 int if_two_nums(Quadriple *curr);
 int if_num_null(Quadriple *curr);
 int if_num_one(Quadriple *curr);

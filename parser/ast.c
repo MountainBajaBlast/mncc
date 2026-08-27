@@ -37,6 +37,12 @@ void free_ast(ASTNode *node)
 		free(node->assigment.name);
 		free_ast(node->assigment.expression);
 		break;
+        case ND_FUNC:
+                for (int i = 0; i < node->func.statement_count; i++)
+                        free_ast(node->func.statements[i]);
+
+                free(node->func.statements);
+                break;
 
 	default:
 		break;

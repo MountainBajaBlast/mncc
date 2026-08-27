@@ -58,13 +58,20 @@ struct segment_command_64 make_segment(int nsects, uint64_t vmsize);
 struct section_64 make_section(uint32_t offset, uint64_t size);
 struct symtab_command make_symtab(uint32_t symoff, int nsyms, uint32_t stroff,
 				  uint32_t strsize);
+int split_bytes(RISCinstruct *insns, int total_instructions,
+                int *function_starts, char **function_names,
+                int function_count, uint32_t *encoded_bytes,
+                int *piece_borders, int *main_index);
 struct nlist_64 make_nlist(uint32_t strx, uint64_t value);
 void first_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
 		int *pos);
 void second_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
 		 int *pos);
 uint32_t *wrap_code(uint32_t *code, int code_size, int *out_nwords);
-void write_object_file(RISCinstruct *insns, int count, const char *obj_path);
+uint32_t *append_dead_functions(uint32_t *text, uint32_t *out,
+				int *piece_borders, int function_count,
+				int main_index, int *nwords);
+void write_object_file(RISCinstruct *insns, int count, const char *obj_path,  int *function_starts, char **function_names, int function_count);
 
 
 #endif
