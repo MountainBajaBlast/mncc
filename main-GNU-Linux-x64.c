@@ -30,8 +30,6 @@
 #include "codegen/codegen-GNU-Linux-x64.h"  
 #include "codegen/enc-GNU-Linux-x64.h"      
 
-void compile_to_binary(IRGraph *graph, const char *output_name);
-
 extern Lexer *lexer;
 
 int main(int argc, char *argv[])

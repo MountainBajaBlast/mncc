@@ -12,7 +12,7 @@ int encode_one(X64instruct *ins, X64functype *out)
 	switch (ins->op) {
 	case OP_MOV:
 		if (ins->is_num) {
-			out[0] = enc_mov_num(ins->reg, ins->num);
+			out[0] = enc_mov_num(ins->reg, ins->src1);
 			return 1;
 		}
 		out[0] = enc_mov_reg(ins->reg, ins->src1);
@@ -141,7 +141,7 @@ int split_bytes(X64instruct *insns, int total_instructions, int *function_starts
 	return 0;
 }
 
-uint32_t *append_dead_functions(X64functype *text, X64functype *out, int *piece_borders, int function_count, int main_index,
+X64functype *append_dead_functions(X64functype *text, X64functype *out, int *piece_borders, int function_count, int main_index,
 				int *nwords)
 {
 	for (int function = 0; function < function_count; function++) {
@@ -188,7 +188,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	X64functype *text = append_dead_functions(out + main_start, out, piece_borders, function_count, main_index, &nwords);
 	free(out);
 
-	int text_bytes = nwords * 4;
+	int text_bytes = nwords * 8;
 	int text_off = 64;
 	int sym_off = text_off + text_bytes;
 	int str_off = sym_off + 24;
