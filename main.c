@@ -88,7 +88,6 @@ int main(int argc, char *argv[])
 
 
 
-	//cia
 	source_code[size] = '\0';
 	Lexer l;
 	l.source = source_code;

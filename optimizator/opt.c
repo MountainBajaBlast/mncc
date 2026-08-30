@@ -512,7 +512,6 @@ void remove_unreachable_blocks(IRGraph *graph)
 		}
 	}
 
-	/* Free dead blocks while their ids are still the original ones. */
 	for (int i = 0; i < n; i++) {
 		BasicBlock *b = graph->blocks[i];
 		if (b->id_block < 0 || b->id_block >= n || new_id[b->id_block] == -1) {
