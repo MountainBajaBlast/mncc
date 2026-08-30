@@ -18,54 +18,48 @@ int encode_one(X64instruct *ins, X64functype *out)
 		out[0] = enc_mov_reg(ins->reg, ins->src1);
 		return 1;
 	case OP_ADD:
-		if (ins->is_num) {
-			out[0] = enc_add_num(ins->reg, ins->src1, ins->src2);
-			return 1;
-		}
-		out[0] = enc_add_reg(ins->reg, ins->src1, ins->src2);
-		return 1;
+		out[0] = enc_mov_reg(ins->reg, ins->src1);
+		out[1] = ins->is_num ? enc_add_num(ins->reg, ins->src2) : enc_add_reg(ins->reg, ins->src2);
+		return 2;
 	case OP_SUB:
-		if (ins->is_num) {
-			out[0] = enc_sub_num(ins->reg, ins->src1, ins->src2);
-			return 1;
-		}
-		out[0] = enc_sub_reg(ins->reg, ins->src1, ins->src2);
-		return 1;
+		out[0] = enc_mov_reg(ins->reg, ins->src1);
+		out[1] = ins->is_num ? enc_sub_num(ins->reg, ins->src2) : enc_sub_reg(ins->reg, ins->src2);
+		return 2;
 	case OP_MUL:
-		if (ins->is_num) {
-			out[0] = enc_mul(ins->reg, ins->src1, ins->src2);
-			return 1;
-		}
-		out[0] = enc_mul(ins->reg, ins->src1, ins->src2);
-		return 1;
+		out[0] = enc_mov_reg(ins->reg, ins->src1);
+		out[1] = ins->is_num ? enc_imul_num(ins->reg, ins->src2) : enc_mul(ins->reg, ins->src2);
+		return 2;
 
 	case OP_DIV:
+		out[0] = enc_mov_reg(0, ins->src1);
+		out[1] = enc_cqo();
 		if (ins->is_num) {
-			out[0] = enc_cqo();
-			out[1] = enc_idiv(ins->src1);
-			return 2;
+			out[2] = enc_mov_num(11, ins->src2);
+			out[3] = enc_idiv(11);
+			out[4] = enc_mov_reg(ins->reg, 0);
+			return 5;
 		}
-		out[0] = enc_cqo();
-		out[1] = enc_idiv(ins->reg);
-		return 2;
+		out[2] = enc_idiv(ins->src2);
+		out[3] = enc_mov_reg(ins->reg, 0);
+		return 4;
 	case OP_RET:
-		if (ins->is_num) {
-			out[0] = enc_ret_num(ins->src1);
-		return 1;
-                }
-                else
-		out[0] = enc_ret_reg(0, ins->src1);
-		return 1;
+		if (ins->is_num)
+			out[0] = enc_mov_num(0, ins->src1);
+		else
+			out[0] = enc_mov_reg(0, ins->src1);
+		out[1] = enc_ret();
+		return 2;
 
 	case OP_CMP:
 		out[0] = ins->is_num ? enc_cmp_num(ins->src1, ins->src2) : enc_cmp_reg(ins->src1, ins->src2);
 		return 1;
 	case OP_JMP:
-		out[0] = enc_jmp(ins->target);
+		out[0] = enc_jmp(0);
 		return 1;
 	case OP_JE:
-		out[0] = enc_je(ins->target);
-		return 1;
+		out[0] = enc_je(0);
+		out[1] = enc_jmp(0);
+		return 2;
 	case OP_LABEL:
 		return 0;
 	default:
@@ -91,11 +85,12 @@ void second_pass(X64instruct *insns, int count, int *label_addr, X64functype *ou
 		case OP_LABEL:
 			break;
 		case OP_JMP:
-			out[*pos] = enc_jmp(label_addr[insns[i].target] - *pos);
+			out[*pos] = enc_jmp(label_addr[insns[i].target] * 8 - (*pos * 8 + 5));
 			*pos += 1;
 			break;
 		case OP_JE:
-			out[*pos] = enc_je(label_addr[insns[i].target2] - (*pos + 1));
+			out[*pos] = enc_je(label_addr[insns[i].target] * 8 - (*pos * 8 + 6));
+			out[*pos + 1] = enc_jmp(label_addr[insns[i].target2] * 8 - (*pos * 8 + 13));
 			*pos += 2;
 			break;
 		default:
@@ -222,7 +217,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	Elf64_Sym nullsym = {0};
 	Elf64_Sym sym = make_symbol(0, 0, text_bytes);
 
-	char strtab[] = {'m', 'a', 'i', 'n', '\0'};
+	char strtab[] = {'m', 'a', 'i', 'n', '\0', '\0'};
 	char shstrtab[] = ".text\0.symtab\0.strtab\0.shstrtab\0";
 
 

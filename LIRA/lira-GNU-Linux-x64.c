@@ -10,7 +10,7 @@ void greedy_allocate(CollectIntervals *cointerval, PhysRegTrack *reg_track)
 		LivenessInterval *current = &cointerval->intervals[reg_idx];
 
 		for (size_t i = 0; i < 16; i++) {
-			if (i == 4 || i == 5 || i == 15)
+			if (i == 0 || i == 2 || i == 4 || i == 5 || i == 11 || i == 15)
 				continue;
 			if (reg_track->phys_reg[i] < current->start_time) {
 				current->phys_reg = i;

@@ -506,9 +506,17 @@ void remove_unreachable_blocks(IRGraph *graph)
 	int live_count = 0;
 	for (int i = 0; i < n; i++) {
 		BasicBlock *b = graph->blocks[i];
-		if (reach[b->id_block]) {
+		if (b->id_block >= 0 && b->id_block < n && reach[b->id_block]) {
 			new_id[b->id_block] = live_count;
 			live[live_count++] = b;
+		}
+	}
+
+	/* Free dead blocks while their ids are still the original ones. */
+	for (int i = 0; i < n; i++) {
+		BasicBlock *b = graph->blocks[i];
+		if (b->id_block < 0 || b->id_block >= n || new_id[b->id_block] == -1) {
+			free_basic_block(b);
 		}
 	}
 
@@ -519,19 +527,13 @@ void remove_unreachable_blocks(IRGraph *graph)
 	for (int i = 0; i < live_count; i++) {
 		BasicBlock *b = live[i];
 		for (int j = 0; j < b->phi_count; j++) {
-			b->phis[j].from_label = new_id[b->phis[j].from_label];
+			int from = b->phis[j].from_label;
+			b->phis[j].from_label = (from >= 0 && from < n) ? new_id[from] : from;
 		}
 	}
 
 	for (int i = 0; i < live_count; i++) {
 		live[i]->next_block = (i + 1 < live_count) ? live[i + 1] : NULL;
-	}
-
-	for (int i = 0; i < n; i++) {
-		BasicBlock *b = graph->blocks[i];
-		if (!reach[b->id_block]) {
-			free_basic_block(b);
-		}
 	}
 
 	free(graph->blocks);

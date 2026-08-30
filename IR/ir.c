@@ -32,15 +32,19 @@ IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table, IRGr
 	if (tree->branching.if_body != NULL) {
 		gen_ir_stmt(tree->branching.if_body, manager, table, graph);
 	}
-	then_bb->terminator = JMP;
-	then_bb->jmp_target = merge_bb;
+	if (then_bb->terminator == TERMINATOR_NONE) {
+		then_bb->terminator = JMP;
+		then_bb->jmp_target = merge_bb;
+	}
 
 	set_current_block(graph, else_bb);
 	if (tree->branching.else_body != NULL) {
 		gen_ir_stmt(tree->branching.else_body, manager, table, graph);
 	}
-	else_bb->terminator = JMP;
-	else_bb->jmp_target = merge_bb;
+	if (else_bb->terminator == TERMINATOR_NONE) {
+		else_bb->terminator = JMP;
+		else_bb->jmp_target = merge_bb;
+	}
 
 	set_current_block(graph, merge_bb);
 

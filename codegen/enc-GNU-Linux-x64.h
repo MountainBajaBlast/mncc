@@ -35,17 +35,17 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 		       int function_count);
 X64functype enc_mov_reg(int regdest, int reg);
 X64functype enc_mov_num(int regdest, int num);
-X64functype enc_add_num(int regdest, int regn, int num);
-X64functype enc_add_reg(int regdest, int regn, int regm);
-X64functype enc_sub_num(int regdest, int regn, int num);
-X64functype enc_sub_reg(int regdest, int regm, int regn);
-X64functype enc_mul(int regdest, int regn, int regm);
+X64functype enc_add_num(int regdest, int num);
+X64functype enc_add_reg(int regdest, int regm);
+X64functype enc_sub_num(int regdest, int num);
+X64functype enc_sub_reg(int regdest, int regm);
+X64functype enc_mul(int regdest, int regm);
+X64functype enc_imul_num(int regdest, int num);
 X64functype enc_cmp_num(int regn, int num);
 X64functype enc_cmp_reg(int regn, int regm);
-X64functype enc_ret_reg(int rd, int rs);
-X64functype enc_ret_num(int num);
 X64functype enc_idiv(int regm);
 X64functype enc_cqo(void);
+X64functype enc_ret(void);
 X64functype enc_je(int offset);
 X64functype enc_jmp(int offset);
 
