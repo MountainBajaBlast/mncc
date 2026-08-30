@@ -4,9 +4,9 @@
 
 
 
-struct elf64_hdr make_elf_header(uint32_t shoff, int shnum)
+Elf64_Ehdr make_elf_header(uint32_t shoff, int shnum)
 {
-	return (struct elf64_hdr){
+	return (Elf64_Ehdr){
 	    .e_ident = {0x7F, 'E', 'L', 'F', 2, 1, 1},
 	    .e_type = 1,
 	    .e_machine = 62,
@@ -27,9 +27,9 @@ struct elf64_hdr make_elf_header(uint32_t shoff, int shnum)
 
 
 
-struct elf64_shdr make_section(uint32_t name, uint32_t type, uint64_t flags, uint64_t offset, uint64_t size)
+Elf64_Shdr make_section(uint32_t name, uint32_t type, uint64_t flags, uint64_t offset, uint64_t size)
 {
-	return (struct elf64_shdr){
+	return (Elf64_Shdr){
 	    .sh_name = name,
 	    .sh_type = type,
 	    .sh_flags = flags,
@@ -38,9 +38,9 @@ struct elf64_shdr make_section(uint32_t name, uint32_t type, uint64_t flags, uin
 	};
 }
 
-struct elf64_shdr make_text_section(uint64_t offset, uint64_t size)
+Elf64_Shdr make_text_section(uint64_t offset, uint64_t size)
 {
-	return (struct elf64_shdr){
+	return (Elf64_Shdr){
 	    .sh_name = 0,
 	    .sh_type = 1,
 	    .sh_flags = 6,
@@ -49,9 +49,9 @@ struct elf64_shdr make_text_section(uint64_t offset, uint64_t size)
 	};
 }
 
-struct elf64_shdr make_symtab_section(uint64_t offset, uint64_t size)
+Elf64_Shdr make_symtab_section(uint64_t offset, uint64_t size)
 {
-	return (struct elf64_shdr){
+	return (Elf64_Shdr){
 	    .sh_name = 6,
 	    .sh_type = 2,
 	    .sh_offset = offset,
@@ -63,9 +63,9 @@ struct elf64_shdr make_symtab_section(uint64_t offset, uint64_t size)
 	};
 }
 
-struct elf64_shdr make_strtab_section(uint32_t name, uint64_t offset, uint64_t size)
+Elf64_Shdr make_strtab_section(uint32_t name, uint64_t offset, uint64_t size)
 {
-	return (struct elf64_shdr){
+	return (Elf64_Shdr){
 	    .sh_name = name,
 	    .sh_type = 3,
 	    .sh_offset = offset,
@@ -73,9 +73,9 @@ struct elf64_shdr make_strtab_section(uint32_t name, uint64_t offset, uint64_t s
 	};
 }
 
-struct elf64_sym make_symbol(uint32_t strx, uint64_t value, uint64_t size)
+Elf64_Sym make_symbol(uint32_t strx, uint64_t value, uint64_t size)
 {
-	return (struct elf64_sym){
+	return (Elf64_Sym){
 	    .st_name = strx,
 	    .st_info = 0x12,
 	    .st_shndx = 1,

@@ -11,6 +11,7 @@ typedef struct X64instruct {
 	int src1;
 	int src2;
 	int reg;
+        int is_num;
 	int target;
 	int target2;
 } X64instruct;
@@ -19,12 +20,12 @@ typedef struct X64functype {
 	uint8_t buffer[15]; 
 } X64functype;
 
-struct elf64_hdr make_elf_header(uint32_t shoff, int shnum);
-struct elf64_shdr make_section(uint32_t name, uint32_t type, uint64_t flags, uint64_t offset, uint64_t size);
-struct elf64_shdr make_text_section(uint64_t offset, uint64_t size);
-struct elf64_shdr make_symtab_section(uint64_t offset, uint64_t size);
-struct elf64_shdr make_strtab_section(uint32_t name, uint64_t offset, uint64_t size);
-struct elf64_sym make_symbol(uint32_t strx, uint64_t value, uint64_t size);
+Elf64_Ehdr make_elf_header(uint32_t shoff, int shnum);
+Elf64_Shdr make_section(uint32_t name, uint32_t type, uint64_t flags, uint64_t offset, uint64_t size);
+Elf64_Shdr make_text_section(uint64_t offset, uint64_t size);
+Elf64_Shdr make_symtab_section(uint64_t offset, uint64_t size);
+Elf64_Shdr make_strtab_section(uint32_t name, uint64_t offset, uint64_t size);
+Elf64_Sym make_symbol(uint32_t strx, uint64_t value, uint64_t size);
 int encode_one(X64instruct *ins, uint32_t *out);
 void first_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, int *pos);
 void second_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, int *pos);

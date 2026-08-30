@@ -7,7 +7,7 @@
 
 
 
-int encode_one(RISCinstruct *ins, uint32_t *out)
+int encode_one(RISCinstruct *ins, X64functype *out)
 {
 	switch (ins->op) {
 	case OP_MOV:
@@ -49,9 +49,11 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 		out[1] = enc_idiv(ins->reg);
 		return 2;
 	case OP_RET:
-		if (ins->is_num)
+		if (ins->is_num) {
 			out[0] = enc_ret_num(ins->src1);
 		return 1;
+                }
+                else
 		out[0] = enc_ret_reg(0, ins->src1);
 		return 1;
 
@@ -71,7 +73,7 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 	}
 }
 
-void first_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, int *pos)
+void first_pass(X64instruct *insns, int count, int *label_addr, X64functype  *out, int *pos)
 {
 	*pos = 0;
 	for (int i = 0; i < count; i++) {
@@ -81,7 +83,7 @@ void first_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, i
 	}
 }
 
-void second_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, int *pos)
+void second_pass(X64instruct *insns, int count, int *label_addr, X64functype *out, int *pos)
 {
 	*pos = 0;
 	for (int i = 0; i < count; i++) {
@@ -104,7 +106,7 @@ void second_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, 
 }
 
 int split_bytes(X64instruct *insns, int total_instructions, int *function_starts, char **function_names,
-		int function_count, uint32_t *encoded_bytes, int *piece_borders, int *main_index)
+		int function_count, X64functype *encoded_bytes, int *piece_borders, int *main_index)
 {
 	int current_word = 0;
 	int next_function = 0;
@@ -139,7 +141,7 @@ int split_bytes(X64instruct *insns, int total_instructions, int *function_starts
 	return 0;
 }
 
-uint32_t *append_dead_functions(uint32_t *text, uint32_t *out, int *piece_borders, int function_count, int main_index,
+uint32_t *append_dead_functions(X64functype *text, X64functype *out, int *piece_borders, int function_count, int main_index,
 				int *nwords)
 {
 	for (int function = 0; function < function_count; function++) {
@@ -149,8 +151,8 @@ uint32_t *append_dead_functions(uint32_t *text, uint32_t *out, int *piece_border
 		int piece_start = piece_borders[function];
 		int piece_length = piece_borders[function + 1] - piece_start;
 
-		text = realloc(text, (*nwords + piece_length) * sizeof(uint32_t));
-		memcpy(text + *nwords, out + piece_start, piece_length * sizeof(uint32_t));
+		text = realloc(text, (*nwords + piece_length) * sizeof(X64functype));
+		memcpy(text + *nwords, out + piece_start, piece_length * sizeof(X64functype));
 		*nwords += piece_length;
 	}
 
@@ -169,7 +171,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	}
 
 	int *label_addr = calloc(max_label + 1, sizeof(int));
-	uint32_t *out = calloc(count * 8 + 8, sizeof(uint32_t));
+	X64functype *out = calloc(count * 8 + 8, sizeof(X64functype));
 	int pos;
 
 	first_pass(insns, count, label_addr, out, &pos);
@@ -183,8 +185,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 
 	int main_start = piece_borders[main_index];
 	int nwords = piece_borders[main_index + 1] - main_start;
-	uint32_t text =
-	    append_dead_functions(out + main_start, out, piece_borders, function_count, main_index, &nwords);
+	X64functype text = append_dead_functions(out + main_start, out, piece_borders, function_count, main_index, &nwords);
 	free(out);
 
 	int text_bytes = nwords * 4;
@@ -194,16 +195,16 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	int shstr_off = str_off + 6;
 	int shdr_off = shstr_off + 33;
 
-	struct elf64_hdr eh = make_elf_header(shdr_off, 4);
+	Elf64_Ehdr eh = make_elf_header(shdr_off, 4);
 
-	struct elf64_shdr shdr[4] = {
+	Elf64_Shdr shdr[4] = {
 	    make_text_section(text_off, text_bytes),
 	    make_symtab_section(sym_off, 24),
 	    make_strtab_section(14, str_off, 6),
 	    make_strtab_section(22, shstr_off, 33),
 	};
 
-	struct elf64_sym sym = make_symbol(0, 0, text_bytes);
+	Elf64_Sym sym = make_symbol(0, 0, text_bytes);
 
 	char strtab[] = {'m', 'a', 'i', 'n', '\0'};
 	char shstrtab[] = ".text\0.symtab\0.strtab\0.shstrtab\0";
