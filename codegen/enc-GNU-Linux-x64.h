@@ -16,7 +16,7 @@ typedef struct X64instruct {
 	int target2;
 } X64instruct;
 
-typedef struct X64functype { 
+typedef struct uint64_t X64functype { 
 	uint8_t buffer[15]; 
 } X64functype;
 

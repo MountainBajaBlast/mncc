@@ -11,10 +11,10 @@ X64functype enc_mov_reg(int regdest, int reg)
 
 X64functype enc_mov_num(int regdest, int num)
 {
-	uint64_t rex = 0x48 | (regdest >= 8 ? 0x01 : 0);
+	uint64_t rex = 0x40 | (regdest >= 8 ? 0x01 : 0);   
 	uint64_t opcode = 0xB8 | (regdest & 7);
-
-	return (rex << 8) | opcode | num;
+	uint32_t imm = (uint32_t)num;
+	return (rex << 40) | ((uint64_t)opcode << 32) | imm;  
 }
 
 
@@ -99,4 +99,4 @@ X64functype enc_cqo(void) { return (0x48 << 8) | 0x99; }
 
 X64functype enc_jmp(int offset) { return ((uint64_t)0xE9 << 32) | (uint32_t)offset; }
 
-X64functype enc_je(int offset) { return ((uint64_t)0x0F << 40) | ((uint64_t)0x84 << 32) | (uint32_t)offset }
+X64functype enc_je(int offset) { return ((uint64_t)0x0F << 40) | ((uint64_t)0x84 << 32) | (uint32_t)offset; }

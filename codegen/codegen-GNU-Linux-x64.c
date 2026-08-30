@@ -176,7 +176,7 @@ void compile_program_to_binary(IRProgram *program, X64instruct **out_insns, int 
 
 		if (piece_count > 0) {
 			merged = realloc(merged, (total_instructions + piece_count) * sizeof(X64instruct));
-			memcpy(merged + total_instructions, piece, piece_count * sizeof(RISCinstruct));
+			memcpy(merged + total_instructions, piece, piece_count * sizeof(X64instruct));
 			total_instructions += piece_count;
 			free(piece);
 		}

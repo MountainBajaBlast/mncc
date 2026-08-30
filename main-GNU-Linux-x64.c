@@ -27,6 +27,8 @@
 #include "optimizator/opt.h"
 #include "parser/parser.h"
 #include "semantic/semantic.h"
+#include "codegen/codegen-GNU-Linux-x64.h"  
+#include "codegen/enc-GNU-Linux-x64.h"      
 
 void compile_to_binary(IRGraph *graph, const char *output_name);
 

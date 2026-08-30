@@ -185,7 +185,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 
 	int main_start = piece_borders[main_index];
 	int nwords = piece_borders[main_index + 1] - main_start;
-	X64functype text = append_dead_functions(out + main_start, out, piece_borders, function_count, main_index, &nwords);
+	X64functype *text = append_dead_functions(out + main_start, out, piece_borders, function_count, main_index, &nwords);
 	free(out);
 
 	int text_bytes = nwords * 4;

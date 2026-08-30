@@ -1,6 +1,6 @@
 # mncc
 
-I'm 13, from Russia. This is my own AOT compiler for Apple Silicon, written from scratch in C. Everything here is written by me.
+I'm 14, from Russia. This is my own AOT compiler for Apple Silicon, written from scratch in C. Everything here is written by me.
 
 The compiler is under development. Currently it supports: variables, constants, conditional branching, `return`, and basic math operations `+ - * /`. Only the `int` type is supported for now.
 
@@ -58,7 +58,7 @@ GPL-3.0.
 
 # mncc (RU)
 
-Мне 13, я из России. Это мой собственный AOT-компилятор под Apple Silicon, написанный с нуля на C. Всё здесь написано мной.
+Мне 14, я из России. Это мой собственный AOT-компилятор под Apple Silicon, написанный с нуля на C. Всё здесь написано мной.
 
 Компилятор в стадии разработки. Сейчас поддерживает: переменные, константы, условное ветвление, `return` и основные математические операции `+ - * /`. Пока поддерживается только тип `int`.
 
