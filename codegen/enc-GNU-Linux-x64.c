@@ -7,7 +7,7 @@
 
 
 
-int encode_one(RISCinstruct *ins, X64functype *out)
+int encode_one(X64instruct *ins, X64functype *out)
 {
 	switch (ins->op) {
 	case OP_MOV:

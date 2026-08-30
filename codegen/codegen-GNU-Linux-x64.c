@@ -28,7 +28,7 @@ void compile_to_binary(IRGraph *graph, X64instruct **out_insns, int *out_count)
 		current_block = current_block->next_block;
 	}
 
-	X64instruct *insns = malloc((total_instr + graph->block_count) * sizeof(RISCinstruct));
+	X64instruct *insns = malloc((total_instr + graph->block_count) * sizeof(X64instruct));
 	if (!insns) {
 		fprintf(stderr, "Fatal: Out of memory in codegen\n");
 		exit(1);
@@ -175,7 +175,7 @@ void compile_program_to_binary(IRProgram *program, X64instruct **out_insns, int 
 		names[i] = current->func_name;
 
 		if (piece_count > 0) {
-			merged = realloc(merged, (total_instructions + piece_count) * sizeof(RISCinstruct));
+			merged = realloc(merged, (total_instructions + piece_count) * sizeof(X64instruct));
 			memcpy(merged + total_instructions, piece, piece_count * sizeof(RISCinstruct));
 			total_instructions += piece_count;
 			free(piece);

@@ -26,12 +26,12 @@ Elf64_Shdr make_text_section(uint64_t offset, uint64_t size);
 Elf64_Shdr make_symtab_section(uint64_t offset, uint64_t size);
 Elf64_Shdr make_strtab_section(uint32_t name, uint64_t offset, uint64_t size);
 Elf64_Sym make_symbol(uint32_t strx, uint64_t value, uint64_t size);
-int encode_one(X64instruct *ins, uint32_t *out);
-void first_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, int *pos);
-void second_pass(X64instruct *insns, int count, int *label_addr, uint32_t *out, int *pos);
+int encode_one(X64instruct *ins, X64functype *out);
+void first_pass(X64instruct *insns, int count, int *label_addr, X64functype *out, int *pos);
+void second_pass(X64instruct *insns, int count, int *label_addr, X64functype *out, int *pos);
 int split_bytes(X64instruct *insns, int total_instructions, int *function_starts, char **function_names,
-		int function_count, uint32_t *encoded_bytes, int *piece_borders, int *main_index);
-uint32_t *append_dead_functions(uint32_t *text, uint32_t *out, int *piece_borders, int function_count, int main_index,
+		int function_count, X64functype *encoded_bytes, int *piece_borders, int *main_index);
+uint32_t *append_dead_functions(X64functype *text, X64functype *out, int *piece_borders, int function_count, int main_index,
 				int *nwords);
 void write_object_file(X64instruct *insns, int count, const char *obj_path, int *function_starts, char **function_names,
 		       int function_count);
