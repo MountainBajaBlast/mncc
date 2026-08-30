@@ -232,7 +232,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	fwrite(text, 1, text_bytes, f);
 	fwrite(&nullsym, sizeof(nullsym), 1, f);
 	fwrite(&sym, sizeof(sym), 1, f);
-	fwrite(strtab, 1, 9, f);
+	fwrite(strtab, 1, 8, f);
 	fwrite(shstrtab, 1, 32, f);
 	fwrite(shdr, sizeof(shdr[0]), 5, f);
 	fclose(f);
