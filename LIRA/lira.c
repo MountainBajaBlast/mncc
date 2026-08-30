@@ -6,8 +6,7 @@ void greedy_allocate(CollectIntervals *cointerval, PhysRegTrack *reg_track)
 		return;
 	}
 
-	for (size_t reg_idx = 0; reg_idx < cointerval->intervals_count;
-	     reg_idx++) {
+	for (size_t reg_idx = 0; reg_idx < cointerval->intervals_count; reg_idx++) {
 		LivenessInterval *current = &cointerval->intervals[reg_idx];
 
 		for (size_t i = 0; i < 31; i++) {

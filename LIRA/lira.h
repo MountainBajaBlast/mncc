@@ -50,14 +50,11 @@ int check_bit(BitVector *bv, size_t idx);
 void bit_vector_union(BitVector *left, const BitVector *right);
 void bit_vector_diff(BitVector *left, const BitVector *right);
 int bit_vector_equal(const BitVector *bv1, const BitVector *bv2);
-void compute_local_liveness(IRGraph *graph, QuadLiveness *quad,
-			    BlockLiveness *block);
-void compute_global_liveness(IRGraph *graph, QuadLiveness *quad,
-			     BlockLiveness *block);
+void compute_local_liveness(IRGraph *graph, QuadLiveness *quad, BlockLiveness *block);
+void compute_global_liveness(IRGraph *graph, QuadLiveness *quad, BlockLiveness *block);
 CollectIntervals *create_intervals(size_t vreg_count);
 void free_intervals(CollectIntervals *cointerval);
-void build_intervals(IRGraph *graph, QuadLiveness *quad, BlockLiveness *block,
-		     CollectIntervals *cointerval);
+void build_intervals(IRGraph *graph, QuadLiveness *quad, BlockLiveness *block, CollectIntervals *cointerval);
 int compare_intervals_by_weight(const void *a, const void *b);
 void sort_intervals(CollectIntervals *cointerval);
 void greedy_allocate(CollectIntervals *cointerval, PhysRegTrack *reg_track);

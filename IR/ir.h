@@ -7,19 +7,7 @@ typedef enum { IR_TYPE_INT64, IR_TYPE_VOID } Types;
 
 typedef enum { VIR_REG, NUM, VAR, NONE, REG_PHYS } OpKind;
 
-typedef enum {
-	RET,
-	DIV,
-	MULT,
-	ADD,
-	SUB,
-	ASSIGN,
-	JMP,
-	JE,
-	PHIN,
-	CMP,
-	TERMINATOR_NONE
-} OpCode;
+typedef enum { RET, DIV, MULT, ADD, SUB, ASSIGN, JMP, JE, PHIN, CMP, TERMINATOR_NONE } OpCode;
 
 typedef struct {
 	int result_reg;
@@ -114,15 +102,14 @@ typedef struct IRResult {
 
 
 typedef struct IRProgram {
-    IRGraph **graphs;
-    int count;
+	IRGraph **graphs;
+	int count;
 } IRProgram;
 
 Operand *create_operand_num(long long value);
 Operand *create_operand_var(char *name);
 Operand *create_operand_reg(IRGraph *graph);
-Quadriple *create_quadriple(Operand *argum1, Operand *argum2, Operand *res,
-			    OpCode oper);
+Quadriple *create_quadriple(Operand *argum1, Operand *argum2, Operand *res, OpCode oper);
 void append_quadriple(BasicBlock *block, Quadriple *quad);
 BasicBlock *create_basic_block(char *labe);
 IRGraph *create_ir_graph(char *function_name);
@@ -133,16 +120,12 @@ VerMan *init_verman(int symbols, RegArr *regs);
 int read_reg(VerMan *var, const char *name, HashTable *table);
 void write_reg(VerMan *var, const char *name, HashTable *table, int tmp_index);
 Operand *create_operand_reg_ref(int reg);
-IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table,
-		     IRGraph *graph);
-IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table,
-		     IRGraph *graph);
-IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table,
-			  IRGraph *graph);
+IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph);
+IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph);
+IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph);
 IRProgram *compile_to_ir(HashTable *table, ASTNode *node);
 int dsu_eval(DominatorTree *domtree, int v);
-void bb_add_phi(BasicBlock *block, int result_reg, int reg_index,
-		int from_block);
+void bb_add_phi(BasicBlock *block, int result_reg, int reg_index, int from_block);
 void free_phis(BasicBlock *block);
 void bb_add_successor(BasicBlock *block, BasicBlock *succ);
 void bb_add_predecessor(BasicBlock *block, BasicBlock *pred);

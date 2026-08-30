@@ -19,16 +19,13 @@ static void lex_number(Lexer *lexer, Token *token)
 static struct {
 	char *word;
 	TokenNames type;
-} keywords[] = {{"int", TK_INTEGER},   {"return", TK_RETURN},
-                {"const", TK_CONST},	{"if", TK_IF},	 
-                {"else", TK_ELSE}};
+} keywords[] = {{"int", TK_INTEGER}, {"return", TK_RETURN}, {"const", TK_CONST}, {"if", TK_IF}, {"else", TK_ELSE}};
 
 static void lex_ident_or_keyword(Lexer *lexer, Token *token)
 {
 	int i = 0;
 
-	while (isalnum((unsigned char)lexer->source[lexer->pos]) ||
-	       lexer->source[lexer->pos] == '_') {
+	while (isalnum((unsigned char)lexer->source[lexer->pos]) || lexer->source[lexer->pos] == '_') {
 		if (i < (int)sizeof(token->text) - 1) {
 			token->text[i++] = lexer->source[lexer->pos];
 		}
@@ -36,7 +33,7 @@ static void lex_ident_or_keyword(Lexer *lexer, Token *token)
 	}
 	token->text[i] = '\0';
 
-        
+
 	token->type = TK_VARIABLE;
 	for (size_t k = 0; k < sizeof(keywords) / sizeof(keywords[0]); k++) {
 		if (strcmp(token->text, keywords[k].word) == 0) {
@@ -44,20 +41,17 @@ static void lex_ident_or_keyword(Lexer *lexer, Token *token)
 			break;
 		}
 	}
-        if (token->type == TK_VARIABLE &&lexer->source[lexer->pos] == '(') {
-            token->type = TK_FUNCNAME;
-        }
-
+	if (token->type == TK_VARIABLE && lexer->source[lexer->pos] == '(') {
+		token->type = TK_FUNCNAME;
+	}
 }
 
 Token next_token(Lexer *lexer)
 {
 	Token token;
 
-	while (lexer->source[lexer->pos] == ' ' ||
-	       lexer->source[lexer->pos] == '\t' ||
-	       lexer->source[lexer->pos] == '\n' ||
-	       lexer->source[lexer->pos] == '\r') {
+	while (lexer->source[lexer->pos] == ' ' || lexer->source[lexer->pos] == '\t' ||
+	       lexer->source[lexer->pos] == '\n' || lexer->source[lexer->pos] == '\r') {
 		lexer->pos++;
 	}
 

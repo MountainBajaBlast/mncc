@@ -1,15 +1,15 @@
 #ifndef PARSER_H
 #define PARSER_H
+#include "../lexer/lexer.h"
 #include <stdbool.h>
 #include <stdlib.h>
-#include "../lexer/lexer.h"
 
 
 extern Token current_token;
 
 void advance();
 struct ASTNode *parse_function();
-struct ASTNode *parse_file(); 
+struct ASTNode *parse_file();
 void free_ast(struct ASTNode *node);
 
 typedef enum {
@@ -22,7 +22,7 @@ typedef enum {
 	ND_VAR_DECL,
 	ND_ASSIGMENT,
 	ND_BRANCH,
-        ND_FUNC
+	ND_FUNC
 } NodeTypes;
 
 typedef struct ASTNode ASTNode;
@@ -74,12 +74,12 @@ struct ASTNode {
 		struct {
 			long value;
 		} IntegerType;
-               
-                struct {
-                 char *name;
-                 ASTNode **statements;
-                 int statement_count;
-                } func;
+
+		struct {
+			char *name;
+			ASTNode **statements;
+			int statement_count;
+		} func;
 	};
 };
 #endif

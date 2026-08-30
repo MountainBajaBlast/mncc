@@ -56,11 +56,9 @@ typedef struct Pattern {
 static const Pattern pattern_table[] = {
     {ADD, if_var_null},	    {ADD, if_two_nums},	    {ADD, if_num_null},
 
-    {MULT, if_two_nums},    {MULT, if_num_null},    {MULT, if_num_one},
-    {MULT, if_var_null},
+    {MULT, if_two_nums},    {MULT, if_num_null},    {MULT, if_num_one}, {MULT, if_var_null},
 
-    {SUB, if_two_nums},	    {SUB, if_same_regs},    {SUB, if_num_null},
-    {SUB, if_var_null},
+    {SUB, if_two_nums},	    {SUB, if_same_regs},    {SUB, if_num_null}, {SUB, if_var_null},
 
     {DIV, if_two_nums},	    {DIV, if_num_one},
 
@@ -72,22 +70,19 @@ int if_num_null(Quadriple *curr)
 {
 	switch (curr->operation) {
 	case ADD: {
-		if (curr->arg2 != NULL && curr->arg2->type == NUM &&
-		    curr->arg2->val.val_int == 0) {
+		if (curr->arg2 != NULL && curr->arg2->type == NUM && curr->arg2->val.val_int == 0) {
 			curr->operation = ASSIGN;
 			curr->arg2 = NULL;
 			return 1;
 		}
 
-		if (curr->arg1 != NULL && curr->arg1->type == NUM &&
-		    curr->arg1->val.val_int == 0) {
+		if (curr->arg1 != NULL && curr->arg1->type == NUM && curr->arg1->val.val_int == 0) {
 			curr->operation = ASSIGN;
 
 			curr->arg1->type = curr->arg2->type;
 
 			if (curr->arg2->type == VAR) {
-				curr->arg1->val.var_name =
-				    strdup(curr->arg2->val.var_name);
+				curr->arg1->val.var_name = strdup(curr->arg2->val.var_name);
 			} else {
 				curr->arg1->val = curr->arg2->val;
 			}
@@ -99,8 +94,7 @@ int if_num_null(Quadriple *curr)
 	}
 
 	case SUB: {
-		if (curr->arg2 != NULL && curr->arg2->type == NUM &&
-		    curr->arg2->val.val_int == 0) {
+		if (curr->arg2 != NULL && curr->arg2->type == NUM && curr->arg2->val.val_int == 0) {
 			curr->operation = ASSIGN;
 			curr->arg2 = NULL;
 			return 1;
@@ -109,10 +103,8 @@ int if_num_null(Quadriple *curr)
 	}
 
 	case MULT: {
-		if ((curr->arg2 != NULL && curr->arg2->type == NUM &&
-		     curr->arg2->val.val_int == 0) ||
-		    (curr->arg1 != NULL && curr->arg1->type == NUM &&
-		     curr->arg1->val.val_int == 0)) {
+		if ((curr->arg2 != NULL && curr->arg2->type == NUM && curr->arg2->val.val_int == 0) ||
+		    (curr->arg1 != NULL && curr->arg1->type == NUM && curr->arg1->val.val_int == 0)) {
 			curr->operation = ASSIGN;
 
 			curr->arg1->type = NUM;
@@ -133,32 +125,28 @@ int if_num_null(Quadriple *curr)
 
 int if_two_nums(Quadriple *curr)
 {
-	if (curr->arg1 == NULL || curr->arg1->type != NUM ||
-	    curr->arg2 == NULL || curr->arg2->type != NUM) {
+	if (curr->arg1 == NULL || curr->arg1->type != NUM || curr->arg2 == NULL || curr->arg2->type != NUM) {
 		return 0;
 	}
 
 	switch (curr->operation) {
 	case ADD: {
 		curr->operation = ASSIGN;
-		curr->arg1->val.val_int =
-		    curr->arg1->val.val_int + curr->arg2->val.val_int;
+		curr->arg1->val.val_int = curr->arg1->val.val_int + curr->arg2->val.val_int;
 
 		curr->arg2 = NULL;
 		return 1;
 	}
 	case SUB: {
 		curr->operation = ASSIGN;
-		curr->arg1->val.val_int =
-		    curr->arg1->val.val_int - curr->arg2->val.val_int;
+		curr->arg1->val.val_int = curr->arg1->val.val_int - curr->arg2->val.val_int;
 
 		curr->arg2 = NULL;
 		return 1;
 	}
 	case MULT: {
 		curr->operation = ASSIGN;
-		curr->arg1->val.val_int =
-		    curr->arg1->val.val_int * curr->arg2->val.val_int;
+		curr->arg1->val.val_int = curr->arg1->val.val_int * curr->arg2->val.val_int;
 
 		curr->arg2 = NULL;
 		return 1;
@@ -168,8 +156,7 @@ int if_two_nums(Quadriple *curr)
 			return 0;
 		}
 		curr->operation = ASSIGN;
-		curr->arg1->val.val_int =
-		    curr->arg1->val.val_int / curr->arg2->val.val_int;
+		curr->arg1->val.val_int = curr->arg1->val.val_int / curr->arg2->val.val_int;
 
 		curr->arg2 = NULL;
 		return 1;
@@ -182,8 +169,7 @@ int if_two_nums(Quadriple *curr)
 
 int if_same_regs(Quadriple *curr)
 {
-	if (curr->arg1 != NULL && curr->arg1->type == VIR_REG &&
-	    curr->arg2 != NULL && curr->arg2->type == VIR_REG &&
+	if (curr->arg1 != NULL && curr->arg1->type == VIR_REG && curr->arg2 != NULL && curr->arg2->type == VIR_REG &&
 	    curr->arg1->val.tmp_index == curr->arg2->val.tmp_index) {
 		curr->operation = ASSIGN;
 
@@ -201,8 +187,7 @@ int if_num_one(Quadriple *curr)
 {
 	switch (curr->operation) {
 	case DIV: {
-		if (curr->arg2 != NULL && curr->arg2->type == NUM &&
-		    curr->arg2->val.val_int == 1) {
+		if (curr->arg2 != NULL && curr->arg2->type == NUM && curr->arg2->val.val_int == 1) {
 			curr->operation = ASSIGN;
 
 			curr->arg2 = NULL;
@@ -211,23 +196,20 @@ int if_num_one(Quadriple *curr)
 		break;
 	}
 	case MULT: {
-		if (curr->arg2 != NULL && curr->arg2->type == NUM &&
-		    curr->arg2->val.val_int == 1) {
+		if (curr->arg2 != NULL && curr->arg2->type == NUM && curr->arg2->val.val_int == 1) {
 			curr->operation = ASSIGN;
 
 			curr->arg2 = NULL;
 			return 1;
 		}
 
-		if (curr->arg1 != NULL && curr->arg1->type == NUM &&
-		    curr->arg1->val.val_int == 1) {
+		if (curr->arg1 != NULL && curr->arg1->type == NUM && curr->arg1->val.val_int == 1) {
 			curr->operation = ASSIGN;
 
 			curr->arg1->type = curr->arg2->type;
 
 			if (curr->arg2->type == VAR) {
-				curr->arg1->val.var_name =
-				    strdup(curr->arg2->val.var_name);
+				curr->arg1->val.var_name = strdup(curr->arg2->val.var_name);
 			} else {
 				curr->arg1->val = curr->arg2->val;
 			}
@@ -257,22 +239,14 @@ int is_var_assigned_to_zero(Quadriple *curr, Operand *op)
 	Quadriple *scan = curr->prev;
 	while (scan != NULL) {
 		if (scan->operation == ASSIGN && scan->result != NULL) {
-			if (op->type == VIR_REG &&
-			    scan->result->type == VIR_REG &&
+			if (op->type == VIR_REG && scan->result->type == VIR_REG &&
 			    op->val.tmp_index == scan->result->val.tmp_index) {
-				return (scan->arg1 != NULL &&
-					scan->arg1->type == NUM &&
-					scan->arg1->val.val_int == 0);
+				return (scan->arg1 != NULL && scan->arg1->type == NUM && scan->arg1->val.val_int == 0);
 			}
 
-			if (op->type == VAR && scan->result->type == VAR &&
-			    scan->result->val.var_name != NULL &&
-			    op->val.var_name != NULL &&
-			    strcmp(op->val.var_name,
-				   scan->result->val.var_name) == 0) {
-				return (scan->arg1 != NULL &&
-					scan->arg1->type == NUM &&
-					scan->arg1->val.val_int == 0);
+			if (op->type == VAR && scan->result->type == VAR && scan->result->val.var_name != NULL &&
+			    op->val.var_name != NULL && strcmp(op->val.var_name, scan->result->val.var_name) == 0) {
+				return (scan->arg1 != NULL && scan->arg1->type == NUM && scan->arg1->val.val_int == 0);
 			}
 		}
 		scan = scan->prev;
@@ -328,13 +302,11 @@ int if_two_nums_cmp(Quadriple *curr)
 	if (curr->operation != CMP)
 		return 0;
 
-	if (curr->arg1 == NULL || curr->arg1->type != NUM ||
-	    curr->arg2 == NULL || curr->arg2->type != NUM) {
+	if (curr->arg1 == NULL || curr->arg1->type != NUM || curr->arg2 == NULL || curr->arg2->type != NUM) {
 		return 0;
 	}
 
-	long long result =
-	    (curr->arg1->val.val_int == curr->arg2->val.val_int) ? 1 : 0;
+	long long result = (curr->arg1->val.val_int == curr->arg2->val.val_int) ? 1 : 0;
 
 	curr->operation = ASSIGN;
 	curr->arg1->type = NUM;
@@ -377,8 +349,7 @@ void run_copy_propagation_phi(IRGraph *graph)
 
 				BasicBlock *pred = NULL;
 				for (int p = 0; p < block->pred_count; p++) {
-					if (block->predecessors[p]->id_block ==
-					    block->phis[j].from_label) {
+					if (block->predecessors[p]->id_block == block->phis[j].from_label) {
 						pred = block->predecessors[p];
 						break;
 					}
@@ -388,15 +359,10 @@ void run_copy_propagation_phi(IRGraph *graph)
 
 				Quadriple *scan = pred->tail;
 				while (scan != NULL) {
-					if (scan->operation == ASSIGN &&
-					    scan->result != NULL &&
-					    scan->result->type == VIR_REG &&
-					    scan->result->val.tmp_index ==
-						src_reg &&
-					    scan->arg1 != NULL &&
-					    scan->arg1->type == VIR_REG) {
-						block->phis[j].reg_index =
-						    scan->arg1->val.tmp_index;
+					if (scan->operation == ASSIGN && scan->result != NULL &&
+					    scan->result->type == VIR_REG && scan->result->val.tmp_index == src_reg &&
+					    scan->arg1 != NULL && scan->arg1->type == VIR_REG) {
+						block->phis[j].reg_index = scan->arg1->val.tmp_index;
 						changed = 1;
 						break;
 					}
@@ -417,8 +383,7 @@ static void run_copy_propagation(BasicBlock *block)
 		changed = 0;
 		Quadriple *curr = block->head;
 		while (curr != NULL) {
-			if (curr->operation == ASSIGN && curr->result != NULL &&
-			    curr->result->type == VIR_REG &&
+			if (curr->operation == ASSIGN && curr->result != NULL && curr->result->type == VIR_REG &&
 			    curr->arg1 != NULL && curr->arg1->type == VIR_REG) {
 				int dst = curr->result->val.tmp_index;
 				int src = curr->arg1->val.tmp_index;
@@ -430,14 +395,12 @@ static void run_copy_propagation(BasicBlock *block)
 
 				Quadriple *scan = curr->next;
 				while (scan != NULL) {
-					if (scan->arg1 != NULL &&
-					    scan->arg1->type == VIR_REG &&
+					if (scan->arg1 != NULL && scan->arg1->type == VIR_REG &&
 					    scan->arg1->val.tmp_index == dst) {
 						scan->arg1->val.tmp_index = src;
 						changed = 1;
 					}
-					if (scan->arg2 != NULL &&
-					    scan->arg2->type == VIR_REG &&
+					if (scan->arg2 != NULL && scan->arg2->type == VIR_REG &&
 					    scan->arg2->val.tmp_index == dst) {
 						scan->arg2->val.tmp_index = src;
 						changed = 1;
@@ -465,30 +428,23 @@ void fold_conditional_branch(BasicBlock *block)
 
 	Quadriple *scan = je->prev;
 	while (scan != NULL) {
-		if (scan->operation == ASSIGN && scan->result != NULL &&
-		    scan->result->type == VIR_REG &&
+		if (scan->operation == ASSIGN && scan->result != NULL && scan->result->type == VIR_REG &&
 		    scan->result->val.tmp_index == cond->val.tmp_index) {
 			if (scan->arg1 == NULL || scan->arg1->type != NUM) {
 				return;
 			}
 
-			BasicBlock *target = (scan->arg1->val.val_int != 0)
-						 ? block->true_target_je
-						 : block->false_target_je;
+			BasicBlock *target =
+			    (scan->arg1->val.val_int != 0) ? block->true_target_je : block->false_target_je;
 
-			BasicBlock *dead = (target == block->true_target_je)
-					       ? block->false_target_je
-					       : block->true_target_je;
+			BasicBlock *dead =
+			    (target == block->true_target_je) ? block->false_target_je : block->true_target_je;
 
 			if (dead != NULL) {
 				for (int i = 0; i < dead->pred_count; i++) {
 					if (dead->predecessors[i] == block) {
-						for (int j = i;
-						     j < dead->pred_count - 1;
-						     j++)
-							dead->predecessors[j] =
-							    dead->predecessors
-								[j + 1];
+						for (int j = i; j < dead->pred_count - 1; j++)
+							dead->predecessors[j] = dead->predecessors[j + 1];
 						dead->pred_count--;
 						break;
 					}
@@ -497,10 +453,8 @@ void fold_conditional_branch(BasicBlock *block)
 
 			for (int i = 0; i < block->succ_count; i++) {
 				if (block->successors[i] == dead) {
-					for (int j = i;
-					     j < block->succ_count - 1; j++)
-						block->successors[j] =
-						    block->successors[j + 1];
+					for (int j = i; j < block->succ_count - 1; j++)
+						block->successors[j] = block->successors[j + 1];
 					block->succ_count--;
 					break;
 				}

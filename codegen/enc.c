@@ -70,11 +70,11 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 		if (ins->is_num) {
 			int n = enc_load_num(16, ins->src2, out);
 			out[n] = enc_sdiv(ins->reg, ins->src1, 16);
-                        out[n + 1] = enc_msub(16, ins->reg, 16, ins->src1);
+			out[n + 1] = enc_msub(16, ins->reg, 16, ins->src1);
 			return n + 2;
 		}
 		out[0] = enc_sdiv(ins->reg, ins->src1, ins->src2);
-                out[1] = enc_msub(16, ins->reg, ins->src1, ins->src2);
+		out[1] = enc_msub(16, ins->reg, ins->src1, ins->src2);
 		return 2;
 
 	case OP_RET:
@@ -90,8 +90,7 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 			out[n + 1] = enc_cset(ins->reg);
 			return n + 2;
 		}
-		out[0] = ins->is_num ? enc_cmp_num(ins->src1, ins->src2)
-				     : enc_cmp_reg(ins->src1, ins->src2);
+		out[0] = ins->is_num ? enc_cmp_num(ins->src1, ins->src2) : enc_cmp_reg(ins->src1, ins->src2);
 		out[1] = enc_cset(ins->reg);
 		return 2;
 
@@ -115,11 +114,7 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 
 
 
-
-
-
-void first_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
-		int *pos)
+void first_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out, int *pos)
 {
 	*pos = 0;
 	for (int i = 0; i < count; i++) {
@@ -129,8 +124,7 @@ void first_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
 	}
 }
 
-void second_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
-		 int *pos)
+void second_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out, int *pos)
 {
 	*pos = 0;
 	for (int i = 0; i < count; i++) {
@@ -142,10 +136,8 @@ void second_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
 			*pos += 1;
 			break;
 		case OP_JE:
-			out[*pos] = enc_cbnz(
-			    insns[i].src1, label_addr[insns[i].target] - *pos);
-			out[*pos + 1] =
-			    enc_b(label_addr[insns[i].target2] - (*pos + 1));
+			out[*pos] = enc_cbnz(insns[i].src1, label_addr[insns[i].target] - *pos);
+			out[*pos + 1] = enc_b(label_addr[insns[i].target2] - (*pos + 1));
 			*pos += 2;
 			break;
 		default:
@@ -155,32 +147,24 @@ void second_pass(RISCinstruct *insns, int count, int *label_addr, uint32_t *out,
 	}
 }
 
-int split_bytes(RISCinstruct *insns, int total_instructions,
-		int *function_starts, char **function_names,
-		int function_count, uint32_t *encoded_bytes,
-		int *piece_borders, int *main_index)
+int split_bytes(RISCinstruct *insns, int total_instructions, int *function_starts, char **function_names,
+		int function_count, uint32_t *encoded_bytes, int *piece_borders, int *main_index)
 {
 	int current_word = 0;
 	int next_function = 0;
 
-	for (int instruction = 0; instruction < total_instructions;
-	     instruction++) {
-		if (next_function < function_count &&
-		    instruction == function_starts[next_function]) {
+	for (int instruction = 0; instruction < total_instructions; instruction++) {
+		if (next_function < function_count && instruction == function_starts[next_function]) {
 			piece_borders[next_function] = current_word;
 			next_function++;
 		}
 		if (insns[instruction].op == OP_JMP) {
 			current_word += 1;
-                }
-		else if (insns[instruction].op == OP_JE) {
+		} else if (insns[instruction].op == OP_JE) {
 			current_word += 2;
-                }
-		else {
-			current_word += encode_one(&insns[instruction],
-						   encoded_bytes +
-						       current_word);
-                 }
+		} else {
+			current_word += encode_one(&insns[instruction], encoded_bytes + current_word);
+		}
 	}
 	piece_borders[function_count] = current_word;
 
@@ -198,9 +182,8 @@ int split_bytes(RISCinstruct *insns, int total_instructions,
 	return 0;
 }
 
-uint32_t *append_dead_functions(uint32_t *text, uint32_t *out,
-				int *piece_borders, int function_count,
-				int main_index, int *nwords)
+uint32_t *append_dead_functions(uint32_t *text, uint32_t *out, int *piece_borders, int function_count, int main_index,
+				int *nwords)
 {
 	for (int function = 0; function < function_count; function++) {
 		if (function == main_index)
@@ -209,10 +192,8 @@ uint32_t *append_dead_functions(uint32_t *text, uint32_t *out,
 		int piece_start = piece_borders[function];
 		int piece_length = piece_borders[function + 1] - piece_start;
 
-		text = realloc(text,
-			       (*nwords + piece_length) * sizeof(uint32_t));
-		memcpy(text + *nwords, out + piece_start,
-		       piece_length * sizeof(uint32_t));
+		text = realloc(text, (*nwords + piece_length) * sizeof(uint32_t));
+		memcpy(text + *nwords, out + piece_start, piece_length * sizeof(uint32_t));
 		*nwords += piece_length;
 	}
 
@@ -220,14 +201,15 @@ uint32_t *append_dead_functions(uint32_t *text, uint32_t *out,
 }
 
 
-void write_object_file(RISCinstruct *insns, int count, const char *obj_path,  int *function_starts, char **function_names, int function_count)
+void write_object_file(RISCinstruct *insns, int count, const char *obj_path, int *function_starts,
+		       char **function_names, int function_count)
 {
 	int max_label = 0;
 	for (int i = 0; i < count; i++) {
 		if (insns[i].op == OP_LABEL && insns[i].target > max_label) {
 			max_label = insns[i].target;
-                }
-         }      
+		}
+	}
 
 	int *label_addr = calloc(max_label + 1, sizeof(int));
 	uint32_t *out = calloc(count * 8 + 8, sizeof(uint32_t));
@@ -236,21 +218,17 @@ void write_object_file(RISCinstruct *insns, int count, const char *obj_path,  in
 	first_pass(insns, count, label_addr, out, &pos);
 	second_pass(insns, count, label_addr, out, &pos);
 
-        int piece_borders[function_count + 1];
+	int piece_borders[function_count + 1];
 	int main_index;
 
-	split_bytes(insns, count, function_starts, function_names,
-		    function_count, out, piece_borders, &main_index);
+	split_bytes(insns, count, function_starts, function_names, function_count, out, piece_borders, &main_index);
 
 	free(label_addr);
 
 	int main_start = piece_borders[main_index];
 	int nwords;
-	uint32_t *text = wrap_code(out + main_start,
-				   piece_borders[main_index + 1] - main_start,
-				   &nwords);
-        text = append_dead_functions(text, out, piece_borders,
-				     function_count, main_index, &nwords);
+	uint32_t *text = wrap_code(out + main_start, piece_borders[main_index + 1] - main_start, &nwords);
+	text = append_dead_functions(text, out, piece_borders, function_count, main_index, &nwords);
 	free(out);
 
 	uint32_t code_size = nwords * 4;

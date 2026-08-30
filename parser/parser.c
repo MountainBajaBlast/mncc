@@ -46,8 +46,7 @@ struct ASTNode *CreateNode(NodeTypes type)
 struct ASTNode *parse_block()
 {
 	struct ASTNode *nodef = CreateNode(ND_FILE);
-	nodef->file.statements =
-	    (struct ASTNode **)malloc(sizeof(struct ASTNode *) * 100);
+	nodef->file.statements = (struct ASTNode **)malloc(sizeof(struct ASTNode *) * 100);
 	nodef->file.statement_count = 0;
 
 	while (current_token.type != TK_END) {
@@ -79,8 +78,7 @@ struct ASTNode *parse_file()
 {
 	struct ASTNode *nodef = CreateNode(ND_FUNC);
 
-	nodef->func.statements =
-	    (struct ASTNode **)malloc(sizeof(struct ASTNode *) * 100);
+	nodef->func.statements = (struct ASTNode **)malloc(sizeof(struct ASTNode *) * 100);
 	nodef->func.statement_count = 0;
 
 	while (current_token.type != TK_EOF) {
@@ -100,19 +98,18 @@ struct ASTNode *parse_file()
 struct ASTNode *parse_function()
 {
 	struct ASTNode *func = CreateNode(ND_FUNC);
-	func->func.statements =
-	    (struct ASTNode **)malloc(sizeof(struct ASTNode *) * 100);
+	func->func.statements = (struct ASTNode **)malloc(sizeof(struct ASTNode *) * 100);
 	func->func.statement_count = 0;
 
-        
+
 	match(TK_INTEGER);
-        func->func.name = strdup(current_token.text);
+	func->func.name = strdup(current_token.text);
 	match(TK_FUNCNAME);
 	match(TK_LARPEN);
 	match(TK_RARPEN);
 	match(TK_START);
 
-       
+
 
 	while (current_token.type != TK_END) {
 		struct ASTNode *code_str = NULL;
@@ -137,9 +134,9 @@ struct ASTNode *parse_function()
 		func->func.statements[index] = code_str;
 		func->func.statement_count++;
 	}
-       
-      	match(TK_END);
-       
+
+	match(TK_END);
+
 
 	return func;
 }

@@ -1,9 +1,8 @@
 #include "ir.h"
+#include "../semantic/semantic.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdlib.h>
-#include "../semantic/semantic.h"
 
 BasicBlock *append_new_block(IRGraph *graph, char *label);
 void set_current_block(IRGraph *graph, BasicBlock *block);
@@ -11,8 +10,7 @@ void free_verman(VerMan *vregs);
 
 
 
-IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table,
-			  IRGraph *graph)
+IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph)
 {
 	BasicBlock *entry_bb = graph->current_block;
 
@@ -21,8 +19,7 @@ IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table,
 	BasicBlock *merge_bb = append_new_block(graph, "merge_bb");
 
 	set_current_block(graph, entry_bb);
-	IRResult cond =
-	    gen_ir_expr(tree->branching.condition, manager, table, graph);
+	IRResult cond = gen_ir_expr(tree->branching.condition, manager, table, graph);
 
 	Quadriple *je_quad = create_quadriple(cond.operand, NULL, NULL, JE);
 	append_quadriple(entry_bb, je_quad);
@@ -53,8 +50,7 @@ IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table,
 	return res;
 }
 
-IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table,
-		     IRGraph *graph)
+IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph)
 {
 	if (tree == NULL) {
 		printf("Error: it s null\n");
@@ -106,8 +102,7 @@ IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table,
 			exit(1);
 		}
 
-		Quadriple *new_quad = create_quadriple(
-		    left_res.operand, right_res.operand, res_op, op);
+		Quadriple *new_quad = create_quadriple(left_res.operand, right_res.operand, res_op, op);
 		append_quadriple(graph->current_block, new_quad);
 		res.operand = res_op;
 		break;
@@ -119,8 +114,7 @@ IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table,
 	return res;
 }
 
-IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table,
-		     IRGraph *graph)
+IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph)
 {
 	if (tree == NULL) {
 		printf("Error: it s null\n");
@@ -135,15 +129,12 @@ IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table,
 		Operand *target_reg = create_operand_reg(graph);
 
 		if (tree->var_decl.initializer) {
-			IRResult var_decl_init = gen_ir_stmt(
-			    tree->var_decl.initializer, manager, table, graph);
-			Quadriple *new_quad_assign = create_quadriple(
-			    var_decl_init.operand, NULL, target_reg, ASSIGN);
+			IRResult var_decl_init = gen_ir_stmt(tree->var_decl.initializer, manager, table, graph);
+			Quadriple *new_quad_assign = create_quadriple(var_decl_init.operand, NULL, target_reg, ASSIGN);
 			append_quadriple(graph->current_block, new_quad_assign);
 		}
 
-		write_reg(manager, tree->var_decl.name, table,
-			  target_reg->val.tmp_index);
+		write_reg(manager, tree->var_decl.name, table, target_reg->val.tmp_index);
 		res.operand = target_reg;
 		break;
 	}
@@ -159,27 +150,22 @@ IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table,
 	case ND_RETURN: {
 		ASTNode *ret_expr = tree->ret.expression;
 		IRResult ret_val = gen_ir_expr(ret_expr, manager, table, graph);
-		Quadriple *ret_quad =
-		    create_quadriple(ret_val.operand, NULL, NULL, RET);
+		Quadriple *ret_quad = create_quadriple(ret_val.operand, NULL, NULL, RET);
 		append_quadriple(graph->current_block, ret_quad);
 		graph->current_block->terminator = RET;
 		res.operand = ret_val.operand;
 		break;
 	}
 	case ND_ASSIGMENT: {
-		Operand *target_reg = create_operand_reg_ref(
-		    read_reg(manager, tree->assigment.name, table));
+		Operand *target_reg = create_operand_reg_ref(read_reg(manager, tree->assigment.name, table));
 
 		if (tree->assigment.expression) {
-			IRResult var_assigment = gen_ir_stmt(
-			    tree->assigment.expression, manager, table, graph);
-			Quadriple *new_quad_assign = create_quadriple(
-			    var_assigment.operand, NULL, target_reg, ASSIGN);
+			IRResult var_assigment = gen_ir_stmt(tree->assigment.expression, manager, table, graph);
+			Quadriple *new_quad_assign = create_quadriple(var_assigment.operand, NULL, target_reg, ASSIGN);
 			append_quadriple(graph->current_block, new_quad_assign);
 		}
 
-		write_reg(manager, tree->assigment.name, table,
-			  target_reg->val.tmp_index);
+		write_reg(manager, tree->assigment.name, table, target_reg->val.tmp_index);
 		res.operand = target_reg;
 		break;
 	}
@@ -201,33 +187,33 @@ IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table,
 
 IRProgram *compile_to_ir(HashTable *table, ASTNode *node)
 {
-       IRProgram *prog = malloc(sizeof(IRProgram));
-       prog->count = node->func.statement_count;
-       prog->graphs = calloc(prog->count, sizeof(IRGraph *));
+	IRProgram *prog = malloc(sizeof(IRProgram));
+	prog->count = node->func.statement_count;
+	prog->graphs = calloc(prog->count, sizeof(IRGraph *));
 
-      for (int i = 0; i < node->func.statement_count; i++) {
-        ASTNode* fn = node->func.statements[i];
- 
+	for (int i = 0; i < node->func.statement_count; i++) {
+		ASTNode *fn = node->func.statements[i];
 
-	IRGraph *graph = create_ir_graph(fn->func.name);
-	BasicBlock *block = create_basic_block("entry");
-	block->id_block = 0;
-	graph->head = block;
-	graph->blocks = realloc(graph->blocks, sizeof(BasicBlock *));
-	graph->blocks[graph->block_count] = block;
-	graph->block_count++;
-	graph->current_block = block;
-	int sym_count = table->symbol_count;
-	RegArr *array = calloc(1, sizeof(RegArr));
-	init_arr(array, table->symbol_count);
-	VerMan *manager = init_verman(sym_count, array);
 
-       for (int j = 0; j < fn->func.statement_count; j++)  {       
-            gen_ir_stmt(fn->func.statements[j], manager, table, graph);
-       }
+		IRGraph *graph = create_ir_graph(fn->func.name);
+		BasicBlock *block = create_basic_block("entry");
+		block->id_block = 0;
+		graph->head = block;
+		graph->blocks = realloc(graph->blocks, sizeof(BasicBlock *));
+		graph->blocks[graph->block_count] = block;
+		graph->block_count++;
+		graph->current_block = block;
+		int sym_count = table->symbol_count;
+		RegArr *array = calloc(1, sizeof(RegArr));
+		init_arr(array, table->symbol_count);
+		VerMan *manager = init_verman(sym_count, array);
 
-	free_verman(manager);
-	prog->graphs[i] = graph;
-     }
-    return prog;
+		for (int j = 0; j < fn->func.statement_count; j++) {
+			gen_ir_stmt(fn->func.statements[j], manager, table, graph);
+		}
+
+		free_verman(manager);
+		prog->graphs[i] = graph;
+	}
+	return prog;
 }

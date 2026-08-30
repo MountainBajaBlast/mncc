@@ -6,8 +6,7 @@ void greedy_allocate(CollectIntervals *cointerval, PhysRegTrack *reg_track)
 		return;
 	}
 
-	for (size_t reg_idx = 0; reg_idx < cointerval->intervals_count;
-	     reg_idx++) {
+	for (size_t reg_idx = 0; reg_idx < cointerval->intervals_count; reg_idx++) {
 		LivenessInterval *current = &cointerval->intervals[reg_idx];
 
 		for (size_t i = 0; i < 16; i++) {
@@ -55,10 +54,8 @@ void rewrite_registers(IRGraph *graph, CollectIntervals *cointerval)
 			if (current_quad == current_block->tail) {
 				break;
 			}
-			current_quad = current_quad->next;	
+			current_quad = current_quad->next;
+		}
+		current_block = current_block->next_block;
 	}
-    current_block = current_block->next_block;
-      }
-
 }
-

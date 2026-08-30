@@ -30,8 +30,7 @@ VOFType eval_expr_type(struct ASTNode *node, HashTable *table)
 	}
 	case ND_BINARY_OP: {
 		VOFType left_type = eval_expr_type(node->BinaryOp.left, table);
-		VOFType right_type =
-		    eval_expr_type(node->BinaryOp.right, table);
+		VOFType right_type = eval_expr_type(node->BinaryOp.right, table);
 
 		return Check_OP(left_type, right_type);
 	}
@@ -50,13 +49,13 @@ void check_semantics(struct ASTNode *node, HashTable *table)
 		return;
 
 	switch (node->type) {
-	case ND_FUNC: {                                                                                                                                          
-          for (int i = 0; i < node->func.statement_count; i++) {
-               check_semantics(node->func.statements[i], table);  
-          }
-           break;                                                                                                                                                    
-        }                                                                                                                                
-                              
+	case ND_FUNC: {
+		for (int i = 0; i < node->func.statement_count; i++) {
+			check_semantics(node->func.statements[i], table);
+		}
+		break;
+	}
+
 	case ND_VAR_DECL: {
 		VarSym new_var = {0};
 		new_var.is_const = node->var_decl.is_const;
@@ -71,8 +70,7 @@ void check_semantics(struct ASTNode *node, HashTable *table)
 	}
 
 	case ND_RETURN: {
-		VOFType expression_type =
-		    eval_expr_type(node->ret.expression, table);
+		VOFType expression_type = eval_expr_type(node->ret.expression, table);
 
 		Check_RET(TYPE_INT, expression_type);
 		break;
@@ -96,14 +94,12 @@ void check_semantics(struct ASTNode *node, HashTable *table)
 			check_semantics(node->branching.else_body, table);
 		break;
 	}
-        case ND_FILE:
-	    for (int i = 0; i < node->file.statement_count; i++)
-	     check_semantics(node->file.statements[i], table);
+	case ND_FILE:
+		for (int i = 0; i < node->file.statement_count; i++)
+			check_semantics(node->file.statements[i], table);
 		break;
 	default:
-		printf(
-		    "[Debug] Семантика встретила необработанный тип узла: %d\n",
-		    node->type);
+		printf("[Debug] Семантика встретила необработанный тип узла: %d\n", node->type);
 		break;
 	}
 }

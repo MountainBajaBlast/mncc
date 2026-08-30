@@ -29,8 +29,7 @@ void compile_to_binary(IRGraph *graph, RISCinstruct **out_insns, int *out_count)
 		current_block = current_block->next_block;
 	}
 
-	RISCinstruct *insns =
-	    malloc((total_instr + graph->block_count) * sizeof(RISCinstruct));
+	RISCinstruct *insns = malloc((total_instr + graph->block_count) * sizeof(RISCinstruct));
 	if (!insns) {
 		fprintf(stderr, "Fatal: Out of memory in codegen\n");
 		exit(1);
@@ -83,20 +82,15 @@ void compile_to_binary(IRGraph *graph, RISCinstruct **out_insns, int *out_count)
 			case JMP:
 				insns[idx].op = OP_JMP;
 				if (current_block->jmp_target)
-					insns[idx].target =
-					    current_block->jmp_target->id_block;
+					insns[idx].target = current_block->jmp_target->id_block;
 				emitted_jump = 1;
 				break;
 			case JE:
 				insns[idx].op = OP_JE;
 				if (current_block->true_target_je)
-					insns[idx].target =
-					    current_block->true_target_je
-						->id_block;
+					insns[idx].target = current_block->true_target_je->id_block;
 				if (current_block->false_target_je)
-					insns[idx].target2 =
-					    current_block->false_target_je
-						->id_block;
+					insns[idx].target2 = current_block->false_target_je->id_block;
 				emitted_jump = 1;
 				break;
 			default:
@@ -106,22 +100,18 @@ void compile_to_binary(IRGraph *graph, RISCinstruct **out_insns, int *out_count)
 			if (quad->arg1) {
 				if (quad->arg1->type == NUM) {
 					insns[idx].is_num = 1;
-					insns[idx].src1 =
-					    (int)quad->arg1->val.val_int;
+					insns[idx].src1 = (int)quad->arg1->val.val_int;
 				} else {
-					insns[idx].src1 =
-					    quad->arg1->val.tmp_index;
+					insns[idx].src1 = quad->arg1->val.tmp_index;
 				}
 			}
 
 			if (quad->arg2) {
 				if (quad->arg2->type == NUM) {
 					insns[idx].is_num = 1;
-					insns[idx].src2 =
-					    (int)quad->arg2->val.val_int;
+					insns[idx].src2 = (int)quad->arg2->val.val_int;
 				} else {
-					insns[idx].src2 =
-					    quad->arg2->val.tmp_index;
+					insns[idx].src2 = quad->arg2->val.tmp_index;
 				}
 			}
 
@@ -129,12 +119,9 @@ void compile_to_binary(IRGraph *graph, RISCinstruct **out_insns, int *out_count)
 				insns[idx].reg = quad->result->val.tmp_index;
 			}
 
-			if (insns[idx].is_num && quad->arg1 &&
-			    quad->arg1->type == NUM && quad->arg2 &&
+			if (insns[idx].is_num && quad->arg1 && quad->arg1->type == NUM && quad->arg2 &&
 			    quad->arg2->type != NUM &&
-			    (quad->operation == ADD ||
-			     quad->operation == MULT ||
-			     quad->operation == CMP)) {
+			    (quad->operation == ADD || quad->operation == MULT || quad->operation == CMP)) {
 				int tmp = insns[idx].src1;
 				insns[idx].src1 = insns[idx].src2;
 				insns[idx].src2 = tmp;
@@ -146,8 +133,7 @@ void compile_to_binary(IRGraph *graph, RISCinstruct **out_insns, int *out_count)
 			quad = quad->next;
 		}
 
-		if (!emitted_jump && current_block->terminator == JMP &&
-		    current_block->jmp_target) {
+		if (!emitted_jump && current_block->terminator == JMP && current_block->jmp_target) {
 			insns[idx].op = OP_JMP;
 			insns[idx].target = current_block->jmp_target->id_block;
 			insns[idx].is_num = 0;
@@ -164,10 +150,8 @@ void compile_to_binary(IRGraph *graph, RISCinstruct **out_insns, int *out_count)
 	*out_count = idx;
 }
 
-void compile_program_to_binary(IRProgram *program,
-			       RISCinstruct **out_insns, int *out_count,
-			       int **out_starts, char ***out_names,
-			       int *out_function_count)
+void compile_program_to_binary(IRProgram *program, RISCinstruct **out_insns, int *out_count, int **out_starts,
+			       char ***out_names, int *out_function_count)
 {
 	RISCinstruct *merged = NULL;
 	int total_instructions = 0;
@@ -191,11 +175,8 @@ void compile_program_to_binary(IRProgram *program,
 		names[i] = current->func_name;
 
 		if (piece_count > 0) {
-			merged = realloc(merged,
-					 (total_instructions + piece_count) *
-					     sizeof(RISCinstruct));
-			memcpy(merged + total_instructions, piece,
-			       piece_count * sizeof(RISCinstruct));
+			merged = realloc(merged, (total_instructions + piece_count) * sizeof(RISCinstruct));
+			memcpy(merged + total_instructions, piece, piece_count * sizeof(RISCinstruct));
 			total_instructions += piece_count;
 			free(piece);
 		}

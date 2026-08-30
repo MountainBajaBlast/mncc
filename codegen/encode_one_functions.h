@@ -4,18 +4,7 @@
 
 
 
-typedef enum {
-	ASM_MOV,
-	ASM_ADD,
-	ASM_SUB,
-	ASM_MUL,
-	ASM_DIV,
-	ASM_RET,
-	ASM_CMP,
-	ASM_JMP,
-	ASM_JE,
-	ASM_LABEL
-} asm_oper;
+typedef enum { ASM_MOV, ASM_ADD, ASM_SUB, ASM_MUL, ASM_DIV, ASM_RET, ASM_CMP, ASM_JMP, ASM_JE, ASM_LABEL } asm_oper;
 
 
 typedef struct RISCinstruct {
