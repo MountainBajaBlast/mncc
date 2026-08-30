@@ -15,8 +15,9 @@ typedef struct X64instruct {
 	int target2;
 } X64instruct;
 
-typedef X64functype { uint8_t buffer[15]; }
-X64functype;
+typedef struct X64functype { 
+	uint8_t buffer[15]; 
+} X64functype;
 
 struct elf64_hdr make_elf_header(uint32_t shoff, int shnum);
 struct elf64_shdr make_section(uint32_t name, uint32_t type, uint64_t flags, uint64_t offset, uint64_t size);
