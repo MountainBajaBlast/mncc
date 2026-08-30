@@ -201,7 +201,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	int sym_null_off = text_off + text_bytes;
 	int sym_off = sym_null_off + 24;
 	int str_off = sym_off + 24;
-	int shstr_off = str_off + 6;
+	int shstr_off = str_off + 8;
 	int shdr_off = shstr_off + 32;
 
 	Elf64_Ehdr eh = make_elf_header(shdr_off, 5);
@@ -210,14 +210,14 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	    make_section(0, 0, 0, 0, 0),
 	    make_text_section(text_off, text_bytes),
 	    make_symtab_section(sym_null_off, 48),
-	    make_strtab_section(14, str_off, 6),
+	    make_strtab_section(14, str_off, 8),
 	    make_strtab_section(22, shstr_off, 32),
 	};
 
 	Elf64_Sym nullsym = {0};
-	Elf64_Sym sym = make_symbol(0, 0, text_bytes);
+	Elf64_Sym sym = make_symbol(1, 0, text_bytes);
 
-	char strtab[] = {'m', 'a', 'i', 'n', '\0', '\0'};
+	char strtab[] = {'\0', 'm', 'a', 'i', 'n', '\0', '\0', '\0'};
 	char shstrtab[] = ".text\0.symtab\0.strtab\0.shstrtab\0";
 
 
@@ -232,7 +232,7 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 	fwrite(text, 1, text_bytes, f);
 	fwrite(&nullsym, sizeof(nullsym), 1, f);
 	fwrite(&sym, sizeof(sym), 1, f);
-	fwrite(strtab, 1, 6, f);
+	fwrite(strtab, 1, 9, f);
 	fwrite(shstrtab, 1, 32, f);
 	fwrite(shdr, sizeof(shdr[0]), 5, f);
 	fclose(f);
