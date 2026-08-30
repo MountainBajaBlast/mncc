@@ -1,11 +1,14 @@
-int main() {
+int main()
+{
 
-int a = 40;
+        int b = 10;
 
-if (a == 40) {
-  return a;
-} else {
-  return 0;
+        if (b == 10) {
+                return 10;
+        } else if (b == 1) {
+                return 132;
+        } else {
+            return 9;
+        }
 }
 
-}

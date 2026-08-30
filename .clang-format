@@ -1,4 +1,5 @@
 Language: C
+ColumnLimit: 120
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction: true

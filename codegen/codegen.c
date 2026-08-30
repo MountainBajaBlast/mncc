@@ -1,4 +1,3 @@
-
 #include "codegen.h"
 #include "enc.h"
 #include <stdio.h>

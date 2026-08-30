@@ -56,6 +56,14 @@ uint32_t enc_sdiv(int regdest, int regn, int regm)
                ((uint32_t)regdest << 0);
 }
 
+uint32_t enc_msub(int regdest, int regn, int regm, int reg)
+{
+        return 0x9B008000 | ((uint32_t)regm << 16) | ((uint32_t)reg << 10) |
+               ((uint32_t)regn << 5) | ((uint32_t)regdest << 0);
+}
+
+
+
 uint32_t enc_cmp_num(int regn, int num)
 {
         return 0xF100001F | ((uint32_t)regn << 5) |

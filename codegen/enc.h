@@ -47,6 +47,7 @@ uint32_t enc_sub_num(int regdest, int regn, int num);
 uint32_t enc_sub_reg(int regdest, int regm, int regn);
 uint32_t enc_mul(int regdest, int regn, int regm);
 uint32_t enc_sdiv(int regdest, int regn, int regm);
+uint32_t enc_msub(int regdest, int regn, int regm, int reg);
 uint32_t enc_cmp_num(int regn, int num);
 uint32_t enc_cmp_reg(int regn, int regm);
 uint32_t enc_cset(int reg);

@@ -70,10 +70,12 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 		if (ins->is_num) {
 			int n = enc_load_num(16, ins->src2, out);
 			out[n] = enc_sdiv(ins->reg, ins->src1, 16);
-			return n + 1;
+                        out[n + 1] = enc_msub(16, ins->reg, 16, ins->src1);
+			return n + 2;
 		}
 		out[0] = enc_sdiv(ins->reg, ins->src1, ins->src2);
-		return 1;
+                out[1] = enc_msub(16, ins->reg, ins->src1, ins->src2);
+		return 2;
 
 	case OP_RET:
 		if (ins->is_num)
