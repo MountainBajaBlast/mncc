@@ -29,7 +29,7 @@ void first_pass(X64instruct *insns, int count, int *label_addr, X64functype *out
 void second_pass(X64instruct *insns, int count, int *label_addr, X64functype *out, int *pos);
 int split_bytes(X64instruct *insns, int total_instructions, int *function_starts, char **function_names,
 		int function_count, X64functype *encoded_bytes, int *piece_borders, int *main_index);
-X64functype *append_dead_functions(X64functype *text, X64functype *out, int *piece_borders, int function_count, int main_index,
+X64functype *append_dead_functions(X64functype *out, int *piece_borders, int function_count, int main_index,
 				int *nwords);
 void write_object_file(X64instruct *insns, int count, const char *obj_path, int *function_starts, char **function_names,
 		       int function_count);

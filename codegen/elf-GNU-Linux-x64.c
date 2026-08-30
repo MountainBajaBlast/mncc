@@ -20,7 +20,7 @@ Elf64_Ehdr make_elf_header(uint32_t shoff, int shnum)
 	    .e_phnum = 0,
 	    .e_shentsize = 64,
 	    .e_shnum = shnum,
-	    .e_shstrndx = 3,
+	    .e_shstrndx = 4,
 	};
 }
 
@@ -56,7 +56,7 @@ Elf64_Shdr make_symtab_section(uint64_t offset, uint64_t size)
 	    .sh_type = 2,
 	    .sh_offset = offset,
 	    .sh_size = size,
-	    .sh_link = 2,
+	    .sh_link = 3,
 	    .sh_info = 1,
 	    .sh_addralign = 8,
 	    .sh_entsize = 24,

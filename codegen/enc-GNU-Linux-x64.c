@@ -141,9 +141,21 @@ int split_bytes(X64instruct *insns, int total_instructions, int *function_starts
 	return 0;
 }
 
-X64functype *append_dead_functions(X64functype *text, X64functype *out, int *piece_borders, int function_count, int main_index,
+X64functype *append_dead_functions(X64functype *out, int *piece_borders, int function_count, int main_index,
 				int *nwords)
 {
+	int main_start = piece_borders[main_index];
+	int main_length = piece_borders[main_index + 1] - main_start;
+
+	X64functype *text = malloc(main_length * sizeof(X64functype));
+	if (!text) {
+		fprintf(stderr, "Fatal: Out of memory in append_dead_functions\n");
+		exit(1);
+	}
+
+	memcpy(text, out + main_start, main_length * sizeof(X64functype));
+	int total = main_length;
+
 	for (int function = 0; function < function_count; function++) {
 		if (function == main_index)
 			continue;
@@ -151,11 +163,12 @@ X64functype *append_dead_functions(X64functype *text, X64functype *out, int *pie
 		int piece_start = piece_borders[function];
 		int piece_length = piece_borders[function + 1] - piece_start;
 
-		text = realloc(text, (*nwords + piece_length) * sizeof(X64functype));
-		memcpy(text + *nwords, out + piece_start, piece_length * sizeof(X64functype));
-		*nwords += piece_length;
+		text = realloc(text, (total + piece_length) * sizeof(X64functype));
+		memcpy(text + total, out + piece_start, piece_length * sizeof(X64functype));
+		total += piece_length;
 	}
 
+	*nwords = total;
 	return text;
 }
 
@@ -185,25 +198,28 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 
 	int main_start = piece_borders[main_index];
 	int nwords = piece_borders[main_index + 1] - main_start;
-	X64functype *text = append_dead_functions(out + main_start, out, piece_borders, function_count, main_index, &nwords);
+	X64functype *text = append_dead_functions(out, piece_borders, function_count, main_index, &nwords);
 	free(out);
 
 	int text_bytes = nwords * 8;
 	int text_off = 64;
-	int sym_off = text_off + text_bytes;
+	int sym_null_off = text_off + text_bytes;
+	int sym_off = sym_null_off + 24;
 	int str_off = sym_off + 24;
 	int shstr_off = str_off + 6;
-	int shdr_off = shstr_off + 33;
+	int shdr_off = shstr_off + 32;
 
-	Elf64_Ehdr eh = make_elf_header(shdr_off, 4);
+	Elf64_Ehdr eh = make_elf_header(shdr_off, 5);
 
-	Elf64_Shdr shdr[4] = {
+	Elf64_Shdr shdr[5] = {
+	    make_section(0, 0, 0, 0, 0),
 	    make_text_section(text_off, text_bytes),
-	    make_symtab_section(sym_off, 24),
+	    make_symtab_section(sym_null_off, 48),
 	    make_strtab_section(14, str_off, 6),
-	    make_strtab_section(22, shstr_off, 33),
+	    make_strtab_section(22, shstr_off, 32),
 	};
 
+	Elf64_Sym nullsym = {0};
 	Elf64_Sym sym = make_symbol(0, 0, text_bytes);
 
 	char strtab[] = {'m', 'a', 'i', 'n', '\0'};
@@ -219,8 +235,10 @@ void write_object_file(X64instruct *insns, int count, const char *obj_path, int 
 
 	fwrite(&eh, sizeof(eh), 1, f);
 	fwrite(text, 1, text_bytes, f);
+	fwrite(&nullsym, sizeof(nullsym), 1, f);
 	fwrite(&sym, sizeof(sym), 1, f);
 	fwrite(strtab, 1, 6, f);
-	fwrite(shstrtab, 1, 33, f);
-	fwrite(shdr, sizeof(shdr[0]), 4, f);
+	fwrite(shstrtab, 1, 32, f);
+	fwrite(shdr, sizeof(shdr[0]), 5, f);
+	fclose(f);
 }
