@@ -73,10 +73,9 @@ uint32_t *wrap_code(uint32_t *code, int code_size, int *out_nwords)
 	text[0] = 0xA9BF7BFD;
 	text[1] = 0xAA0003FD;
 	memcpy(text + 2, code, code_size * 4);
-	text[code_size + 2] = 0xA8C17BFD;
-	text[code_size + 3] = 0xD2800030;
-	text[code_size + 4] = 0xD4001001;
-
+	text[code_size + 2] = 0xA8C17BFD;    
+        text[code_size + 3] = 0xD2800030;    
+        text[code_size + 4] = 0xD4001001;  
 	*out_nwords = total;
 
 	return text;
