@@ -110,3 +110,14 @@ X64functype enc_je(int offset)
 {
 	return nop_pad(0x0F | ((uint64_t)0x84 << 8) | ((uint64_t)(uint32_t)offset << 16), 6);
 }
+
+
+X64functype enc_neg(int reg) 
+{
+
+uint64_t rex =        0x48 |        ((reg >= 8) ? 0x01 : 0); 
+    uint64_t modrm =        0xC0 |        (3 << 3) |        (reg & 7);
+    return nop_pad(        rex |        ((uint64_t)0xF7    << 8) |        ((uint64_t)modrm   << 16),        3    );
+
+
+}

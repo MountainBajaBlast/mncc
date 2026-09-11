@@ -21,7 +21,8 @@ typedef enum {
 	OP_CSET,
 	OP_CBNZ,
 	OP_MOVZ,
-	OP_MOVK
+	OP_MOVK,
+	OP_NEG
 } oper;
 
 typedef struct RISCinstruct {
@@ -68,6 +69,6 @@ uint32_t *append_dead_functions(uint32_t *text, uint32_t *out, int *piece_border
 				int *nwords);
 void write_object_file(RISCinstruct *insns, int count, const char *obj_path, int *function_starts,
 		       char **function_names, int function_count);
-
+uint32_t enc_neg_reg(int regdest, int regm);
 
 #endif

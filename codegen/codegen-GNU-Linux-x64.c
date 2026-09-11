@@ -93,6 +93,9 @@ void compile_to_binary(IRGraph *graph, X64instruct **out_insns, int *out_count)
 					insns[idx].target2 = current_block->false_target_je->id_block;
 				emitted_jump = 1;
 				break;
+			case UNARY:
+				insns[idx].op = OP_NEG;
+				break;
 			default:
 				break;
 			}

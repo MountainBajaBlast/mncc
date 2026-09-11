@@ -13,6 +13,10 @@ void free_ast(ASTNode *node)
 		free_ast(node->BinaryOp.right);
 		break;
 
+	case ND_UNARY:
+		free_ast(node->UnaryOp.operand);
+		break;
+
 	case ND_VARIABLES:
 		free(node->variables.name);
 		break;

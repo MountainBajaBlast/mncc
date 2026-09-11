@@ -62,6 +62,10 @@ int encode_one(X64instruct *ins, X64functype *out)
 		return 2;
 	case OP_LABEL:
 		return 0;
+	case OP_NEG:
+	     out[0] = enc_neg(ins->src1);
+	     return 1;
+
 	default:
 		return 0;
 	}

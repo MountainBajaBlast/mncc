@@ -38,6 +38,10 @@ VOFType eval_expr_type(struct ASTNode *node, HashTable *table)
 		return TYPE_INT;
 	}
 
+	case ND_UNARY: {
+ 	   return eval_expr_type(node->UnaryOp.operand, table);
+}
+
 	default:
 		return TYPE_UKNOWN;
 	}
@@ -79,7 +83,7 @@ void check_semantics(struct ASTNode *node, HashTable *table)
 		int found = 0;
 		VarSym var = search(table, node->assigment.name, &found);
 		if (var.is_const) {
-			printf("Пошёл ты нахуй пидор бля\n");
+			printf("Are you serious?\n");
 			exit(1);
 		}
 

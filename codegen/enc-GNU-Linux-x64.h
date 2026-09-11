@@ -4,7 +4,7 @@
 #include <elf.h>
 #include <stdint.h>
 
-typedef enum { OP_MOV, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_RET, OP_CMP, OP_JE, OP_JMP, OP_LABEL } oper;
+typedef enum { OP_MOV, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_RET, OP_CMP, OP_JE, OP_JMP, OP_LABEL, OP_NEG } oper;
 
 typedef struct X64instruct {
 	oper op;
@@ -48,5 +48,6 @@ X64functype enc_cqo(void);
 X64functype enc_ret(void);
 X64functype enc_je(int offset);
 X64functype enc_jmp(int offset);
+X64functype enc_neg(int reg);
 
 #endif

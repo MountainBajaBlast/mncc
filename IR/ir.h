@@ -7,7 +7,7 @@ typedef enum { IR_TYPE_INT64, IR_TYPE_VOID } Types;
 
 typedef enum { VIR_REG, NUM, VAR, NONE, REG_PHYS } OpKind;
 
-typedef enum { RET, DIV, MULT, ADD, SUB, ASSIGN, JMP, JE, PHIN, CMP, TERMINATOR_NONE } OpCode;
+typedef enum { RET, DIV, MULT, ADD, SUB, ASSIGN, JMP, JE, PHIN, CMP, TERMINATOR_NONE, UNARY } OpCode;
 
 typedef struct {
 	int result_reg;

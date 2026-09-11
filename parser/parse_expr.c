@@ -12,6 +12,7 @@ void match(TokenNames expected);
 struct ASTNode *parse_expression();
 struct ASTNode *CreateNode(NodeTypes type);
 struct ASTNode *parse_primary();
+struct ASTNode *parse_unary(); 
 
 struct ASTNode *parse_expression()
 {
@@ -31,15 +32,32 @@ struct ASTNode *parse_expression()
 
 struct ASTNode *parse_term()
 {
-	struct ASTNode *left_node = parse_primary();
+	struct ASTNode *left_node = parse_unary();
 	while (current_token.type == TK_MULTYPLY || current_token.type == TK_DIVISION) {
 		TokenNames op_type = current_token.type;
 		match(op_type);
 		struct ASTNode *binary_node = CreateNode(ND_BINARY_OP);
 		binary_node->BinaryOp.op = (int)op_type;
 		binary_node->BinaryOp.left = left_node;
-		binary_node->BinaryOp.right = parse_primary();
+		binary_node->BinaryOp.right = parse_unary();
 		left_node = binary_node;
 	}
 	return left_node;
 }
+
+struct ASTNode *parse_unary()
+{
+
+   while (current_token.type == TK_SUBTRACTION) {
+           TokenNames op_type = current_token.type;
+                match(op_type);
+                struct ASTNode *unary_node = CreateNode(ND_UNARY);
+                unary_node->UnaryOp.op = (int)op_type;
+                unary_node->UnaryOp.operand = parse_primary();
+                return  unary_node;
+        }
+   return parse_primary();
+        
+}
+
+    

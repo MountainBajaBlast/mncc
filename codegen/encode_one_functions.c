@@ -52,6 +52,14 @@ uint32_t enc_msub(int regdest, int regn, int regm, int reg)
 }
 
 
+uint32_t enc_neg_reg(int regdest, int regm)
+{
+        return 0xCB0003E0  | ((uint32_t)regm << 16) |  ((uint32_t)regdest << 0);
+}
+
+
+
+
 
 uint32_t enc_cmp_num(int regn, int num) { return 0xF100001F | ((uint32_t)regn << 5) | ((uint32_t)(num & 0xFFF) << 10); }
 

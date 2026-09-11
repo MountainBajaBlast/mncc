@@ -103,6 +103,13 @@ int encode_one(RISCinstruct *ins, uint32_t *out)
 		out[1] = enc_b(ins->target2);
 		return 2;
 
+	case OP_NEG:
+		if (ins->is_num) {
+     		    int n = enc_load_num(ins->reg, -(int64_t)ins->src1, out);
+ 		    return n;
+		}
+		out[0] = enc_neg_reg(ins->reg, ins->src1);
+		return 1;
 	case OP_LABEL:
 		return 0;
 

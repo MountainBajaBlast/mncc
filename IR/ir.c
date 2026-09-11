@@ -69,6 +69,7 @@ IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *
 	res.operand = NULL;
 
 	switch (tree->type) {
+
 	case ND_NUMBER: {
 		res.operand = create_operand_num(tree->Numbers.value);
 		break;
@@ -79,6 +80,7 @@ IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *
 		res.operand = create_operand_reg_ref(reg);
 		break;
 	}
+
 	case ND_BINARY_OP: {
 		ASTNode *left = tree->BinaryOp.left;
 		ASTNode *right = tree->BinaryOp.right;
@@ -115,6 +117,29 @@ IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *
 		res.operand = res_op;
 		break;
 	}
+
+	case ND_UNARY: {
+		IRResult operand_res = gen_ir_expr(tree->UnaryOp.operand, manager, table, graph);
+		Operand *out_reg = create_operand_reg(graph);
+		OpCode op;
+
+		switch (tree->UnaryOp.op) {
+		case TK_SUBTRACTION:
+			op = UNARY;
+			break;
+		default:
+			fprintf(stderr, "Error: Unknown unary operator\n");
+			exit(1);
+		}
+		Quadriple *new_quad = create_quadriple(operand_res.operand, NULL, out_reg, op);
+		append_quadriple(graph->current_block, new_quad);
+		res.operand = out_reg;
+		break;
+	}
+
+
+
+
 	default:
 		break;
 	}
@@ -184,6 +209,7 @@ IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *
 	case ND_NUMBER:
 	case ND_VARIABLES:
 	case ND_BINARY_OP:
+	case ND_UNARY:
 
 		res = gen_ir_expr(tree, manager, table, graph);
 		break;
