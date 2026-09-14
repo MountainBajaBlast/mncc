@@ -15,6 +15,12 @@ struct ASTNode *parse_branching();
 struct ASTNode *parse_statement();
 struct ASTNode *parse_file();
 struct ASTNode *parse_term();
+struct ASTNode* parse_funcall();
+struct ASTNode* parse_primary();
+struct ASTNode* parse_expression();
+
+
+
 
 
 
@@ -93,19 +99,106 @@ struct ASTNode *parse_file()
 	return nodef;
 }
 
+struct ASTNode* parse_funcall()
+{
+
+
+         struct ASTNode *funcall_node = CreateNode(ND_CALL);
+         funcall_node->call.name = parse_primary();
+
+
+          match(TK_LARPEN);
+
+
+	int capacity = 4;
+
+          funcall_node->call.arguments = (struct ASTNode **)malloc(sizeof(struct ASTNode *) * capacity);
+
+        while (current_token.type != TK_RARPEN) {
+
+		 if (funcall_node->call.argument_count >= capacity) {
+                        capacity *= 2;
+
+                        funcall_node->call.arguments =
+                                realloc(
+                                        funcall_node->call.arguments,
+                                        sizeof(ASTNode *) * capacity
+                                );
+                  }
+
+                 funcall_node->call.arguments[funcall_node->call.argument_count] = parse_expression();
+                funcall_node->call.argument_count++;
+                if (current_token.type != TK_COMMA) {
+                      break;
+                 }
+
+        match(TK_COMMA);
+    }
+
+        match(TK_RARPEN);
+	match(TK_SEMICOLON);
+        return funcall_node;
+}
+
+
 
 
 struct ASTNode *parse_function()
 {
 	struct ASTNode *func = CreateNode(ND_FUNC);
+	 func->func.return_type = CreateNode(ND_TYPE_INT);
 	func->func.statements = (struct ASTNode **)malloc(sizeof(struct ASTNode *) * 100);
 	func->func.statement_count = 0;
 
 
 	match(TK_INTEGER);
 	func->func.name = strdup(current_token.text);
-	match(TK_FUNCNAME);
+	match(TK_IDENTIFIER);
 	match(TK_LARPEN);
+	int capacity = 10;
+
+	func->func.parametrs = (struct ASTNode **)malloc(sizeof(struct ASTNode *) * capacity);
+	 while (current_token.type != TK_RARPEN) {
+
+		 match(TK_INTEGER);
+
+
+	         ASTNode* param = CreateNode(ND_VARIABLES);	
+		 param->variables.name = strdup(current_token.text);	
+                 if (func->func.parametr_count >= capacity) {
+                        capacity *= 2;
+
+                        func->func.parametrs =
+                                realloc(
+                                        func->func.parametrs,
+                                        sizeof(ASTNode *) * capacity
+                                );
+                  }
+		    func->func.parametrs[
+                func->func.parametr_count
+        ] = param;
+
+        func->func.parametr_count++;
+
+        if (current_token.type != TK_COMMA) {
+                break;
+        }
+
+        match(TK_COMMA);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 	match(TK_RARPEN);
 	match(TK_START);
 

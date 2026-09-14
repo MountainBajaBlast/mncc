@@ -8,9 +8,8 @@ typedef enum {
 	TK_SEMICOLON,
 	TK_START,
 	TK_END,
-	TK_FUNCNAME,
 	TK_INTEGER,
-	TK_VARIABLE,
+	TK_IDENTIFIER,
 	TK_ADD,
 	TK_SUBTRACTION,
 	TK_ASSIGN,
@@ -21,7 +20,8 @@ typedef enum {
 	TK_CONST,
 	TK_IF,
 	TK_ELSE,
-	TK_CMP
+	TK_CMP,
+	TK_COMMA
 } TokenNames;
 
 typedef struct {

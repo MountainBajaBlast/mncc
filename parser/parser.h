@@ -23,7 +23,8 @@ typedef enum {
 	ND_ASSIGMENT,
 	ND_BRANCH,
 	ND_FUNC,
-     	ND_UNARY
+     	ND_UNARY,
+	ND_CALL
 } NodeTypes;
 
 typedef struct ASTNode ASTNode;
@@ -78,9 +79,22 @@ struct ASTNode {
 
 		struct {
 			char *name;
+			ASTNode *return_type;
+			ASTNode **parametrs;
+			int parametr_count;
 			ASTNode **statements;
 			int statement_count;
 		} func;
+
+		struct {
+			ASTNode *name;
+			ASTNode **arguments;
+			int argument_count;
+		} call;
+
+
+
+
                 struct {
 		    int op;
  		    ASTNode *operand;

@@ -34,16 +34,14 @@ static void lex_ident_or_keyword(Lexer *lexer, Token *token)
 	token->text[i] = '\0';
 
 
-	token->type = TK_VARIABLE;
+	token->type = TK_IDENTIFIER;
 	for (size_t k = 0; k < sizeof(keywords) / sizeof(keywords[0]); k++) {
 		if (strcmp(token->text, keywords[k].word) == 0) {
 			token->type = keywords[k].type;
 			break;
 		}
 	}
-	if (token->type == TK_VARIABLE && lexer->source[lexer->pos] == '(') {
-		token->type = TK_FUNCNAME;
-	}
+	
 }
 
 Token next_token(Lexer *lexer)
@@ -116,6 +114,11 @@ Token next_token(Lexer *lexer)
 	case ')':
 		token.type = TK_RARPEN;
 		strcpy(token.text, ")");
+		lexer->pos++;
+		return token;
+	case ',':
+		token.type = TK_COMMA;
+		strcpy(token.text, ",");
 		lexer->pos++;
 		return token;
 	default:

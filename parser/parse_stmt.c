@@ -24,10 +24,10 @@ struct ASTNode *parse_primary()
 		match(TK_NUMBER);
 		break;
 	}
-	case TK_VARIABLE: {
+	case TK_IDENTIFIER: {
 		NewNode = CreateNode(ND_VARIABLES);
 		NewNode->variables.name = strdup(current_token.text);
-		match(TK_VARIABLE);
+		match(TK_IDENTIFIER);
 		break;
 	}
 	case TK_LARPEN: {
@@ -84,7 +84,7 @@ struct ASTNode *parse_declaration()
 	match(TK_INTEGER);
 	node_var->var_decl.name = strdup(current_token.text);
 
-	match(TK_VARIABLE);
+	match(TK_IDENTIFIER);
 
 	node_var->var_decl.initializer = NULL;
 
