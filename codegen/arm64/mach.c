@@ -1,5 +1,5 @@
-#include "../IR/ir.h"
-#include "enc.h"
+#include "../../IR/ir.h"
+#include "../enc.h"
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
 #include <stdint.h>
@@ -67,16 +67,15 @@ struct nlist_64 make_nlist(uint32_t strx, uint64_t value)
 
 uint32_t *wrap_code(uint32_t *code, int code_size, int *out_nwords)
 {
-	int total = 2 + code_size + 3;
-	uint32_t *text = calloc(total, sizeof(uint32_t));
+	uint32_t *text = calloc(5 + code_size, sizeof(uint32_t));
 
 	text[0] = 0xA9BF7BFD;
-	text[1] = 0xAA0003FD;
-	memcpy(text + 2, code, code_size * 4);
-	text[code_size + 2] = 0xA8C17BFD;    
-        text[code_size + 3] = 0xD2800030;    
-        text[code_size + 4] = 0xD4001001;  
-	*out_nwords = total;
+	text[1] = 0xAA1E03FD;
+	text[2] = 0x94000003;
+	text[3] = 0xD2800030;
+	text[4] = 0xD4001001;
+	memcpy(text + 5, code, code_size * 4);
+	*out_nwords = 5 + code_size;
 
 	return text;
 }

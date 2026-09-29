@@ -2,153 +2,98 @@
 
 #include <stdbool.h>
 
-void init_quad_liveness(QuadLiveness *ql, size_t max_regs)
+#define QUAD_INIT(max_regs) \
+	(quad->use = create_bit_vector(max_regs), quad->def = create_bit_vector(max_regs))
+#define QUAD_FREE() \
+	(free_bit_vector(&quad->use), free_bit_vector(&quad->def))
+#define BLOCK_INIT(max_regs) \
+	(block->b_use = create_bit_vector(max_regs), block->b_def = create_bit_vector(max_regs), \
+	 block->live_in = create_bit_vector(max_regs), block->live_out = create_bit_vector(max_regs))
+#define BLOCK_FREE() \
+	(free_bit_vector(&block->b_use), free_bit_vector(&block->b_def), \
+	 free_bit_vector(&block->live_in), free_bit_vector(&block->live_out))
+
+void init_quad_liveness(QuadLiveness *quad, size_t max_regs) { if (quad) QUAD_INIT(max_regs); }
+void free_quadliveness(QuadLiveness *quad) { if (quad) QUAD_FREE(); }
+void init_block_liveness(BlockLiveness *block, size_t max_regs) { if (block) BLOCK_INIT(max_regs); }
+void free_blockliveness(BlockLiveness *block) { if (block) BLOCK_FREE(); }
+
+static inline void process_operand(BitVector *bit_vector, const Operand *operand)
 {
-	if (ql == NULL) {
-		return;
-	}
-
-	ql->use = create_bit_vector(max_regs);
-	ql->def = create_bit_vector(max_regs);
-}
-
-void free_quadliveness(QuadLiveness *ql)
-{
-	if (ql == NULL) {
-		return;
-	}
-
-	free_bit_vector(&ql->use);
-	free_bit_vector(&ql->def);
-}
-
-void init_block_liveness(BlockLiveness *bl, size_t max_regs)
-{
-	if (bl == NULL) {
-		return;
-	}
-
-	bl->b_use = create_bit_vector(max_regs);
-	bl->b_def = create_bit_vector(max_regs);
-	bl->live_in = create_bit_vector(max_regs);
-	bl->live_out = create_bit_vector(max_regs);
-}
-
-void free_blockliveness(BlockLiveness *bl)
-{
-	if (bl == NULL) {
-		return;
-	}
-
-	free_bit_vector(&bl->b_use);
-	free_bit_vector(&bl->b_def);
-	free_bit_vector(&bl->live_in);
-	free_bit_vector(&bl->live_out);
-}
-static inline void process_operand(BitVector *bv, const Operand *op)
-{
-	if (op && op->type == VIR_REG) {
-		set_bit(bv, op->val.tmp_index);
-	}
+	if (operand && operand->type == VIR_REG)
+		set_bit(bit_vector, operand->val.tmp_index);
 }
 
 void compute_local_liveness(IRGraph *graph, QuadLiveness *quad, BlockLiveness *block)
 {
-	if (graph == NULL || quad == NULL || block == NULL)
+	if (!graph || !quad || !block)
 		return;
 
-	size_t q_idx = 0;
-	size_t b_idx = 0;
-	BasicBlock *current_block = graph->head;
+	for (BasicBlock *basic_block = graph->head; basic_block; basic_block = basic_block->next_block)
+		init_block_liveness(&block[basic_block->id_block], graph->reg_count);
 
-	while (current_block != NULL) {
-		init_block_liveness(&block[b_idx], graph->reg_count);
+	size_t quad_index = 0;
+	EACH_QUAD(basic_block, current_quad) {
+		size_t block_index = basic_block->id_block;
+		init_quad_liveness(&quad[quad_index], graph->reg_count);
+		process_operand(&quad[quad_index].use, current_quad->arg1);
+		process_operand(&quad[quad_index].use, current_quad->arg2);
+		process_operand(&quad[quad_index].def, current_quad->result);
+		if (current_quad->call)
+			for (int argument = 0; argument < current_quad->call->argument_count; argument++)
+				process_operand(&quad[quad_index].use, current_quad->call->args[argument]);
 
-		Quadriple *current_quad = current_block->head;
-		while (current_quad != NULL) {
-			init_quad_liveness(&quad[q_idx], graph->reg_count);
-
-			process_operand(&quad[q_idx].use, current_quad->arg1);
-			process_operand(&quad[q_idx].use, current_quad->arg2);
-			process_operand(&quad[q_idx].def, current_quad->result);
-
-			for (size_t byte = 0; byte < block[b_idx].b_use.bytes_count; byte++) {
-				unsigned char inst_use_minus_block_def =
-				    quad[q_idx].use.data[byte] & ~block[b_idx].b_def.data[byte];
-				block[b_idx].b_use.data[byte] |= inst_use_minus_block_def;
-				block[b_idx].b_def.data[byte] |= quad[q_idx].def.data[byte];
-			}
-
-			q_idx++;
-			if (current_quad == current_block->tail)
-				break;
-			current_quad = current_quad->next;
+		for (size_t byte = 0; byte < block[block_index].b_use.bytes_count; byte++) {
+			block[block_index].b_use.data[byte] |= quad[quad_index].use.data[byte] & ~block[block_index].b_def.data[byte];
+			block[block_index].b_def.data[byte] |= quad[quad_index].def.data[byte];
 		}
-
-		b_idx++;
-		current_block = current_block->next_block;
+		quad_index++;
 	}
+}
+
+static bool block_live_in_changed(IRGraph *graph, QuadLiveness *quad, BlockLiveness *block,
+				  BasicBlock *basic_block, size_t first_quad, size_t quad_count)
+{
+	size_t block_index = basic_block->id_block;
+	BitVector live = create_bit_vector(graph->reg_count);
+	bit_vector_union(&live, &block[block_index].live_out);
+	for (size_t index = first_quad + quad_count; index-- > first_quad;) {
+		bit_vector_diff(&live, &quad[index].def);
+		bit_vector_union(&live, &quad[index].use);
+	}
+	bool changed = !bit_vector_equal(&block[block_index].live_in, &live);
+	if (changed)
+		bit_vector_copy(&block[block_index].live_in, &live);
+	free_bit_vector(&live);
+	return changed;
 }
 
 void compute_global_liveness(IRGraph *graph, QuadLiveness *quad, BlockLiveness *block)
 {
-	if (graph == NULL || quad == NULL || block == NULL)
+	if (!graph || !quad || !block)
 		return;
 
 	bool changed;
 	do {
 		changed = false;
-		size_t b_idx = 0;
 		size_t total_quads = 0;
-		BasicBlock *current_block = graph->head;
-		while (current_block != NULL) {
-			size_t block_quad_count = 0;
-			Quadriple *q = current_block->head;
-			while (q != NULL) {
-				block_quad_count++;
-				if (q == current_block->tail)
-					break;
-				q = q->next;
+		for (BasicBlock *basic_block = graph->head; basic_block; basic_block = basic_block->next_block) {
+			size_t block_index = basic_block->id_block;
+			size_t block_quads = 0;
+			QUAD_COUNT(basic_block, block_quads);
+
+			for (int successor = 0; successor < basic_block->succ_count; successor++)
+				if (basic_block->successors[successor])
+					bit_vector_union(&block[block_index].live_out,
+							 &block[basic_block->successors[successor]->id_block].live_in);
+
+			if (block_quads)
+				changed |= block_live_in_changed(graph, quad, block, basic_block, total_quads, block_quads);
+			else if (!bit_vector_equal(&block[block_index].live_in, &block[block_index].live_out)) {
+				bit_vector_copy(&block[block_index].live_in, &block[block_index].live_out);
+				changed = true;
 			}
-
-			for (int i = 0; i < current_block->succ_count; i++) {
-				BasicBlock *succ = current_block->successors[i];
-				if (succ != NULL) {
-					bit_vector_union(&block[b_idx].live_out, &block[succ->id_block].live_in);
-				}
-			}
-
-			if (block_quad_count > 0) {
-				BitVector current_live = create_bit_vector(graph->reg_count);
-				bit_vector_union(&current_live, &block[b_idx].live_out);
-
-				size_t block_end_idx = total_quads + block_quad_count - 1;
-				size_t block_start_idx = total_quads;
-
-				for (size_t i = block_end_idx;; i--) {
-					bit_vector_diff(&current_live, &quad[i].def);
-					bit_vector_union(&current_live, &quad[i].use);
-					if (i == block_start_idx)
-						break;
-				}
-
-				if (!bit_vector_equal(&block[b_idx].live_in, &current_live)) {
-					bit_vector_diff(&block[b_idx].live_in, &block[b_idx].live_in);
-					bit_vector_union(&block[b_idx].live_in, &current_live);
-					changed = true;
-				}
-				free_bit_vector(&current_live);
-			} else {
-				if (!bit_vector_equal(&block[b_idx].live_in, &block[b_idx].live_out)) {
-					bit_vector_diff(&block[b_idx].live_in, &block[b_idx].live_in);
-					bit_vector_union(&block[b_idx].live_in, &block[b_idx].live_out);
-					changed = true;
-				}
-			}
-			total_quads += block_quad_count;
-			b_idx++;
-			current_block = current_block->next_block;
+			total_quads += block_quads;
 		}
-
 	} while (changed);
 }

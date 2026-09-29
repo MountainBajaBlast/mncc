@@ -26,6 +26,7 @@ typedef struct {
 	int end_time;
 	int phys_reg;
 	int vreg_id;
+	int is_call;
 } LivenessInterval;
 
 typedef struct {
@@ -39,8 +40,20 @@ typedef struct {
 
 typedef enum { REG_PHYSICAL, REG_VIRTUAL } RegType;
 
+#define EACH_QUAD(basic_block, current_quad)                                  \
+	for (BasicBlock *basic_block = graph->head; basic_block;              \
+	     basic_block = basic_block->next_block)                           \
+		for (Quadriple *current_quad = basic_block->head; current_quad; \
+		     current_quad = current_quad->next)
+
+#define QUAD_COUNT(basic_block, count)                                        \
+	for (Quadriple *current_quad = basic_block->head; current_quad;       \
+	     current_quad = current_quad->next)                               \
+		(count)++
+
 BitVector create_bit_vector(size_t max_regs);
 void free_bit_vector(BitVector *bv);
+void bit_vector_copy(BitVector *destination, const BitVector *source);
 void init_quad_liveness(QuadLiveness *ql, size_t max_regs);
 void free_quadliveness(QuadLiveness *ql);
 void init_block_liveness(BlockLiveness *bl, size_t max_regs);

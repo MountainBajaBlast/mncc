@@ -13,7 +13,6 @@ VOFType eval_expr_type(struct ASTNode *node, HashTable *table)
 	if (node == NULL)
 		return TYPE_VOID;
 
-	int found = 0;
 	VarSym symbol;
 
 	switch (node->type) {
@@ -22,7 +21,7 @@ VOFType eval_expr_type(struct ASTNode *node, HashTable *table)
 	}
 	case ND_VARIABLES: {
 		if (node->variables.name != NULL) {
-			symbol = search(table, node->variables.name, &found);
+			symbol = search(table, node->variables.name);
 			return symbol.type;
 		}
 
@@ -41,6 +40,9 @@ VOFType eval_expr_type(struct ASTNode *node, HashTable *table)
 	case ND_UNARY: {
  	   return eval_expr_type(node->UnaryOp.operand, table);
 }
+	case ND_CALL: {
+    return TYPE_INT;
+}
 
 	default:
 		return TYPE_UKNOWN;
@@ -54,9 +56,31 @@ void check_semantics(struct ASTNode *node, HashTable *table)
 
 	switch (node->type) {
 	case ND_FUNC: {
-		for (int i = 0; i < node->func.statement_count; i++) {
-			check_semantics(node->func.statements[i], table);
+		if (node->func.name == NULL) {
+			for (int i = 0; i < node->func.statement_count; i++) {
+				if (node->func.statements[i]->type == ND_FUNC) {
+					register_function(node->func.statements[i]->func.name,
+							  node->func.statements[i]->func.parametr_count, NULL);
+				}
+			}
+			for (int i = 0; i < node->func.statement_count; i++)
+				check_semantics(node->func.statements[i], table);
+			break;
 		}
+
+		HashTable *scope = create_child_table(table->size, table);
+
+		for (int i = 0; i < node->func.parametr_count; i++) {
+			VarSym param = {0};
+			param.is_const = 0;
+			param.type = TYPE_INT;
+			insert(scope, node->func.parametrs[i]->variables.name, param);
+		}
+
+		register_function(node->func.name, node->func.parametr_count, scope);
+
+		for (int i = 0; i < node->func.statement_count; i++)
+			check_semantics(node->func.statements[i], scope);
 		break;
 	}
 
@@ -80,8 +104,7 @@ void check_semantics(struct ASTNode *node, HashTable *table)
 		break;
 	}
 	case ND_ASSIGMENT: {
-		int found = 0;
-		VarSym var = search(table, node->assigment.name, &found);
+		VarSym var = search(table, node->assigment.name);
 		if (var.is_const) {
 			printf("Are you serious?\n");
 			exit(1);
@@ -93,15 +116,35 @@ void check_semantics(struct ASTNode *node, HashTable *table)
 	}
 	case ND_BRANCH: {
 		eval_expr_type(node->branching.condition, table);
-		check_semantics(node->branching.if_body, table);
-		if (node->branching.else_body)
-			check_semantics(node->branching.else_body, table);
+		if(node->branching.if_body) {
+		HashTable *if_scope = create_child_table(table->size, table);
+		check_semantics(node->branching.if_body, if_scope);
+		free_table(if_scope);
+		}
+		if (node->branching.else_body) {
+		HashTable *else_scope = create_child_table(table->size, table);
+		check_semantics(node->branching.else_body, else_scope);
+		free_table(else_scope);
+		}
 		break;
 	}
 	case ND_FILE:
 		for (int i = 0; i < node->file.statement_count; i++)
 			check_semantics(node->file.statements[i], table);
 		break;
+	case ND_CALL: {
+		FuncInfo *expected = find_function(node->call.name);
+		if (expected == NULL) { fprintf(stderr, "Функция '%s' не объявлена\n", node->call.name); exit(1); }
+		if (node->call.argument_count != expected->param_count) {
+			fprintf(stderr, "Функция '%s': ожидается %d аргументов, получено %d\n",
+				node->call.name, expected->param_count, node->call.argument_count);
+			exit(1);
+		}
+
+		for (int i = 0; i < node->call.argument_count; i++)
+			eval_expr_type(node->call.arguments[i], table);
+		break;
+	}
 	default:
 		printf("[Debug] Семантика встретила необработанный тип узла: %d\n", node->type);
 		break;

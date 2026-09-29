@@ -3,15 +3,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct ASTNode *parse_declaration();
-struct ASTNode *parse_branching();
-struct ASTNode *parse_statement();
-struct ASTNode *parse_file();
-struct ASTNode *parse_term();
-void advance();
-void match(TokenNames expected);
-struct ASTNode *parse_expression();
-struct ASTNode *CreateNode(NodeTypes type);
+static int is_function_call()
+{
+	extern Lexer *lexer;
+	int saved_pos = lexer->pos;
+	Token peek = next_token(lexer);
+	lexer->pos = saved_pos;
+	return peek.type == TK_LARPEN;
+}
+
+
+
+
+
+
+
+
+
 
 struct ASTNode *parse_primary()
 {
@@ -25,6 +33,10 @@ struct ASTNode *parse_primary()
 		break;
 	}
 	case TK_IDENTIFIER: {
+		if (is_function_call()) {
+			NewNode = parse_funcall();
+			break;
+		}
 		NewNode = CreateNode(ND_VARIABLES);
 		NewNode->variables.name = strdup(current_token.text);
 		match(TK_IDENTIFIER);
@@ -68,6 +80,8 @@ struct ASTNode *parse_statement()
 		return assign;
 	}
 
+
+	match(TK_SEMICOLON);
 	return expr;
 }
 

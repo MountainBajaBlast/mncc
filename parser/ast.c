@@ -57,7 +57,7 @@ void free_ast(ASTNode *node)
                 break;
 
         case ND_CALL:
-                free_ast(node->call.name);
+		free(node->call.name);                
 
                 for (int i = 0;
                      i < node->call.argument_count;

@@ -3,89 +3,51 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define APPLY_BITS(operator)                                          \
+	if (left && right && left->bytes_count == right->bytes_count) \
+		for (size_t byte = 0; byte < left->bytes_count; byte++) \
+			left->data[byte] operator right->data[byte]
+
 BitVector create_bit_vector(size_t max_regs)
 {
-	BitVector bv;
-
-	bv.bytes_count = (max_regs + 7) / 8;
-	bv.max_regs = max_regs;
-
-	bv.data = (unsigned char *)calloc(bv.bytes_count, sizeof(unsigned char));
-
-	if (bv.data == NULL) {
-		bv.bytes_count = 0;
-		bv.max_regs = 0;
-	}
-
-	return bv;
+	BitVector bit_vector = { calloc((max_regs + 7) / 8, 1), (max_regs + 7) / 8, max_regs };
+	if (!bit_vector.data)
+		bit_vector.bytes_count = bit_vector.max_regs = 0;
+	return bit_vector;
 }
 
-void free_bit_vector(BitVector *bv)
+void free_bit_vector(BitVector *bit_vector)
 {
-	if (bv == NULL) {
-		return;
-	}
-
-	if (bv->data != NULL) {
-		free(bv->data);
-		bv->data = NULL;
-	}
-
-	bv->bytes_count = 0;
-	bv->max_regs = 0;
-}
-
-void set_bit(BitVector *bv, size_t idx)
-{
-	if (bv == NULL || idx >= bv->max_regs) {
-		return;
-	}
-
-	size_t byte_idx = idx / 8;
-	size_t bit_idx = idx % 8;
-
-	bv->data[byte_idx] |= (1 << bit_idx);
-}
-
-int check_bit(BitVector *bv, size_t idx)
-{
-	if (bv == NULL || idx >= bv->max_regs) {
-		return 0;
-	}
-
-	size_t byte_idx = idx / 8;
-	size_t bit_idx = idx % 8;
-
-	return (bv->data[byte_idx] & (1 << bit_idx)) != 0;
-}
-
-void bit_vector_union(BitVector *left, const BitVector *right)
-{
-	if (left == NULL || right == NULL || left->bytes_count != right->bytes_count) {
-		return;
-	}
-
-	for (int i = 0; i < left->bytes_count; i++) {
-		left->data[i] |= right->data[i];
+	if (bit_vector) {
+		free(bit_vector->data);
+		bit_vector->data = NULL;
+		bit_vector->bytes_count = bit_vector->max_regs = 0;
 	}
 }
 
-void bit_vector_diff(BitVector *left, const BitVector *right)
+void set_bit(BitVector *bit_vector, size_t index)
 {
-	if (left == NULL || right == NULL || left->bytes_count != right->bytes_count) {
-		return;
-	}
-
-	for (int i = 0; i < left->bytes_count; i++) {
-		left->data[i] &= ~right->data[i];
-	}
+	if (bit_vector && index < bit_vector->max_regs)
+		bit_vector->data[index / 8] |= 1 << (index % 8);
 }
 
-int bit_vector_equal(const BitVector *bv1, const BitVector *bv2)
+int check_bit(BitVector *bit_vector, size_t index)
 {
-	if (bv1 == NULL || bv2 == NULL || bv1->bytes_count != bv2->bytes_count) {
-		return 0;
-	}
+	return bit_vector && index < bit_vector->max_regs &&
+	       (bit_vector->data[index / 8] & (1 << (index % 8)));
+}
 
-	return memcmp(bv1->data, bv2->data, bv1->bytes_count) == 0;
+void bit_vector_union(BitVector *left, const BitVector *right) { APPLY_BITS(|=); }
+void bit_vector_diff(BitVector *left, const BitVector *right) { APPLY_BITS(&= ~); }
+
+void bit_vector_copy(BitVector *destination, const BitVector *source)
+{
+	if (destination && source && destination->bytes_count == source->bytes_count)
+		memcpy(destination->data, source->data, destination->bytes_count);
+}
+
+int bit_vector_equal(const BitVector *left, const BitVector *right)
+{
+	return left && right && left->bytes_count == right->bytes_count &&
+	       !memcmp(left->data, right->data, left->bytes_count);
 }

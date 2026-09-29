@@ -9,21 +9,6 @@ Lexer *lexer;
 Token current_token;
 
 
-
-struct ASTNode *parse_declaration();
-struct ASTNode *parse_branching();
-struct ASTNode *parse_statement();
-struct ASTNode *parse_file();
-struct ASTNode *parse_term();
-struct ASTNode* parse_funcall();
-struct ASTNode* parse_primary();
-struct ASTNode* parse_expression();
-
-
-
-
-
-
 void advance() { current_token = next_token(lexer); }
 
 void match(TokenNames expected)
@@ -104,7 +89,9 @@ struct ASTNode* parse_funcall()
 
 
          struct ASTNode *funcall_node = CreateNode(ND_CALL);
-         funcall_node->call.name = parse_primary();
+         funcall_node->call.name = strdup(current_token.text);
+	match(TK_IDENTIFIER);
+
 
 
           match(TK_LARPEN);
@@ -114,6 +101,8 @@ struct ASTNode* parse_funcall()
 
           funcall_node->call.arguments = (struct ASTNode **)malloc(sizeof(struct ASTNode *) * capacity);
 
+	funcall_node->call.argument_count = 0;
+
         while (current_token.type != TK_RARPEN) {
 
 		 if (funcall_node->call.argument_count >= capacity) {
@@ -122,7 +111,7 @@ struct ASTNode* parse_funcall()
                         funcall_node->call.arguments =
                                 realloc(
                                         funcall_node->call.arguments,
-                                        sizeof(ASTNode *) * capacity
+                                        sizeof(struct ASTNode *) * capacity
                                 );
                   }
 
@@ -136,7 +125,7 @@ struct ASTNode* parse_funcall()
     }
 
         match(TK_RARPEN);
-	match(TK_SEMICOLON);
+	
         return funcall_node;
 }
 
@@ -165,6 +154,7 @@ struct ASTNode *parse_function()
 
 	         ASTNode* param = CreateNode(ND_VARIABLES);	
 		 param->variables.name = strdup(current_token.text);	
+		 match(TK_IDENTIFIER);
                  if (func->func.parametr_count >= capacity) {
                         capacity *= 2;
 

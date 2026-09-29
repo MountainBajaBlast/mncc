@@ -4,19 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-int if_two_nums(Quadriple *curr);
-int if_num_null(Quadriple *curr);
-int if_num_one(Quadriple *curr);
-int if_same_regs(Quadriple *curr);
-void run_combiner(BasicBlock *block);
-void run_dce(BasicBlock *block, int *use_tab);
-int if_var_null(Quadriple *curr);
-int is_var_assigned_to_zero(Quadriple *curr, Operand *op);
-int if_two_nums_cmp(Quadriple *curr);
-int if_cmp_with_null(Quadriple *curr);
-void run_phi_dce(BasicBlock *block, int *use_tab);
+static int if_two_nums(Quadriple *curr);
+static int if_num_null(Quadriple *curr);
+static int if_num_one(Quadriple *curr);
+static int if_same_regs(Quadriple *curr);
+static int if_var_null(Quadriple *curr);
+static int if_two_nums_cmp(Quadriple *curr);
+static int if_cmp_with_null(Quadriple *curr);
+static void run_dce(BasicBlock *block, int *use_tab);
+static void run_phi_dce(BasicBlock *block, int *use_tab);
 
-void fill_use_table(BasicBlock *block, int *use_tab)
+static void fill_use_table(BasicBlock *block, int *use_tab)
 {
 	if (block == NULL)
 		return;
@@ -34,6 +32,17 @@ void fill_use_table(BasicBlock *block, int *use_tab)
 			int idx = curr->arg2->val.tmp_index;
 			if (idx >= 0) {
 				use_tab[idx]++;
+			}
+		}
+
+		if (curr->call) {
+			for (int arg = 0; arg < curr->call->argument_count; arg++) {
+				if (curr->call->args[arg] != NULL && curr->call->args[arg]->type == VIR_REG) {
+					int idx = curr->call->args[arg]->val.tmp_index;
+					if (idx >= 0) {
+						use_tab[idx]++;
+					}
+				}
 			}
 		}
 
@@ -66,7 +75,7 @@ static const Pattern pattern_table[] = {
 
 static const int pattern_table_size = sizeof(pattern_table) / sizeof(Pattern);
 
-int if_num_null(Quadriple *curr)
+static int if_num_null(Quadriple *curr)
 {
 	switch (curr->operation) {
 	case ADD: {
@@ -123,7 +132,7 @@ int if_num_null(Quadriple *curr)
 	return 0;
 }
 
-int if_two_nums(Quadriple *curr)
+static int if_two_nums(Quadriple *curr)
 {
 	if (curr->arg1 == NULL || curr->arg1->type != NUM || curr->arg2 == NULL || curr->arg2->type != NUM) {
 		return 0;
@@ -167,7 +176,7 @@ int if_two_nums(Quadriple *curr)
 	return 0;
 }
 
-int if_same_regs(Quadriple *curr)
+static int if_same_regs(Quadriple *curr)
 {
 	if (curr->arg1 != NULL && curr->arg1->type == VIR_REG && curr->arg2 != NULL && curr->arg2->type == VIR_REG &&
 	    curr->arg1->val.tmp_index == curr->arg2->val.tmp_index) {
@@ -183,7 +192,7 @@ int if_same_regs(Quadriple *curr)
 	return 0;
 }
 
-int if_num_one(Quadriple *curr)
+static int if_num_one(Quadriple *curr)
 {
 	switch (curr->operation) {
 	case DIV: {
@@ -231,7 +240,7 @@ int if_num_one(Quadriple *curr)
 	return 0;
 }
 
-int is_var_assigned_to_zero(Quadriple *curr, Operand *op)
+static int is_var_assigned_to_zero(Quadriple *curr, Operand *op)
 {
 	if (op == NULL || curr == NULL)
 		return 0;
@@ -254,7 +263,7 @@ int is_var_assigned_to_zero(Quadriple *curr, Operand *op)
 	return 0;
 }
 
-int if_var_null(Quadriple *curr)
+static int if_var_null(Quadriple *curr)
 {
 	int arg1_is_zero = is_var_assigned_to_zero(curr, curr->arg1);
 	int arg2_is_zero = is_var_assigned_to_zero(curr, curr->arg2);
@@ -297,7 +306,7 @@ int if_var_null(Quadriple *curr)
 	return 0;
 }
 
-int if_two_nums_cmp(Quadriple *curr)
+static int if_two_nums_cmp(Quadriple *curr)
 {
 	if (curr->operation != CMP)
 		return 0;
@@ -315,7 +324,7 @@ int if_two_nums_cmp(Quadriple *curr)
 	return 1;
 }
 
-int if_cmp_with_null(Quadriple *curr)
+static int if_cmp_with_null(Quadriple *curr)
 {
 	if (curr->operation != CMP)
 		return 0;
@@ -334,7 +343,7 @@ int if_cmp_with_null(Quadriple *curr)
 	return 1;
 }
 
-void run_copy_propagation_phi(IRGraph *graph)
+static void run_copy_propagation_phi(IRGraph *graph)
 {
 	if (graph == NULL)
 		return;
@@ -413,7 +422,7 @@ static void run_copy_propagation(BasicBlock *block)
 	} while (changed);
 }
 
-void fold_conditional_branch(BasicBlock *block)
+static void fold_conditional_branch(BasicBlock *block)
 {
 	if (block == NULL || block->terminator != JE)
 		return;
@@ -473,7 +482,7 @@ void fold_conditional_branch(BasicBlock *block)
 	}
 }
 
-void remove_unreachable_blocks(IRGraph *graph)
+static void remove_unreachable_blocks(IRGraph *graph)
 {
 	if (graph == NULL || graph->head == NULL)
 		return;
@@ -545,7 +554,7 @@ void remove_unreachable_blocks(IRGraph *graph)
 	free(new_id);
 }
 
-void run_combiner(BasicBlock *block)
+static void run_combiner(BasicBlock *block)
 {
 	if (block == NULL || block->head == NULL)
 		return;
@@ -612,27 +621,7 @@ void optimize_ir(IRGraph *graph)
 	free(use_tab);
 }
 
-void run_phis_dce(BasicBlock *block, int *use_tab)
-{
-	if (block == NULL || block->phi_count == 0)
-		return;
-
-	int w = 0;
-
-	for (int i = 0; i < block->phi_count; i++) {
-		if (use_tab[block->phis[i].result_reg] == 0) {
-			continue;
-		}
-
-		if (w != i) {
-			block->phis[w] = block->phis[i];
-		}
-		w++;
-	}
-	block->phi_count = w;
-}
-
-void run_dce(BasicBlock *block, int *use_tab)
+static void run_dce(BasicBlock *block, int *use_tab)
 {
 	if (block == NULL || block->head == NULL)
 		return;
@@ -642,7 +631,7 @@ void run_dce(BasicBlock *block, int *use_tab)
 	while (curr != NULL) {
 		Quadriple *next_var = curr->next;
 
-		if (curr->result != NULL && curr->result->type == VIR_REG) {
+		if (curr->result != NULL && curr->result->type == VIR_REG && curr->operation != CALL) {
 			int res_reg = curr->result->val.tmp_index;
 
 			if (use_tab[res_reg] == 0) {
@@ -666,7 +655,7 @@ void run_dce(BasicBlock *block, int *use_tab)
 	}
 }
 
-void run_phi_dce(BasicBlock *block, int *use_tab)
+static void run_phi_dce(BasicBlock *block, int *use_tab)
 {
 	if (block == NULL || block->phi_count == 0)
 		return;

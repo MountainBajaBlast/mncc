@@ -1,35 +1,44 @@
 #include "ir.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "../semantic/semantic.h"
+
+
+static RegArr *ensure_regs(VerMan *var, int symbol_id)
+{
+int new_cap = symbol_id + 1;
+
+	if(new_cap <= (int)var->last_regs->capacity) {
+		return var->last_regs;
+	}
+
+
+	var->last_regs->data = realloc(var->last_regs->data, new_cap * sizeof(int));
+	for(int i = var->last_regs->capacity; i < new_cap ; i++) {
+		 var->last_regs->data[i] = -1;
+	}
+
+	var->last_regs->capacity = new_cap;
+	return var->last_regs;
+
+
+
+
+}
+
+
+
 
 
 int read_reg(VerMan *var, const char *name, HashTable *table)
 {
-	int found = 0;
-	VarSym sum = search(table, name, &found);
-	if (!found) {
-		fprintf(stderr, "Unknown variable %s\n", name);
-		exit(EXIT_FAILURE);
-	}
+	VarSym sum = search(table, name);
 
-	int variant = var->last_regs->data[sum.symbol_id];
-
-	return variant;
+	return ensure_regs(var, sum.symbol_id)->data[sum.symbol_id];
 }
 
 void write_reg(VerMan *var, const char *name, HashTable *table, int tmp_index)
 {
-	int found = 0;
+	VarSym sum = search(table, name);
 
-	VarSym sum = search(table, name, &found);
-
-	if (!found) {
-		fprintf(stderr, "Unknown variable %s\n", name);
-		exit(EXIT_FAILURE);
-	}
-
-	var->last_regs->data[sum.symbol_id] = tmp_index;
+	ensure_regs(var, sum.symbol_id)->data[sum.symbol_id] = tmp_index;
 }

@@ -1,62 +1,75 @@
 #include "lira.h"
 
+#define TRY_ALLOCATE(interval, reg_track, first_reg, last_reg)                     \
+	do {                                                                       \
+		for (int phys_reg = (first_reg); phys_reg <= (last_reg) &&         \
+		     (interval)->phys_reg == -1; phys_reg++)                       \
+			if ((reg_track)->phys_reg[phys_reg] <=                     \
+			    (interval)->start_time) {                              \
+				(interval)->phys_reg = phys_reg;                   \
+				(reg_track)->phys_reg[phys_reg] =                  \
+				    (interval)->end_time;                          \
+			}                                                          \
+	} while (0)
+
 void greedy_allocate(CollectIntervals *cointerval, PhysRegTrack *reg_track)
 {
-	if (cointerval == NULL || cointerval->intervals == NULL) {
+	if (!cointerval || !cointerval->intervals)
 		return;
-	}
 
-	for (size_t reg_idx = 0; reg_idx < cointerval->intervals_count; reg_idx++) {
-		LivenessInterval *current = &cointerval->intervals[reg_idx];
+	for (size_t interval_index = 0; interval_index < cointerval->intervals_count; interval_index++) {
+		LivenessInterval *interval = &cointerval->intervals[interval_index];
 
-		for (size_t i = 0; i < 31; i++) {
-			if (i == 16 || i == 17 || i == 18 || i == 29 || i == 30)
-				continue;
-			if (reg_track->phys_reg[i] < current->start_time) {
-				current->phys_reg = i;
-				reg_track->phys_reg[i] = current->end_time;
-				break;
-			}
+		if (interval->start_time < 0)
+			continue;
+
+		if (interval->is_call)
+			TRY_ALLOCATE(interval, reg_track, 19, 28);
+		else {
+			TRY_ALLOCATE(interval, reg_track, 0, 15);
+			TRY_ALLOCATE(interval, reg_track, 19, 28);
 		}
 	}
 }
 
-static void assign_physical_reg(Operand *op, CollectIntervals *cointerval)
+static void assign_physical_reg(Operand *operand, CollectIntervals *cointerval)
 {
-	if (op == NULL || op->type == NUM) {
+	if (!operand || operand->type == NUM)
 		return;
-	}
 
-	int vreg_id = op->val.tmp_index;
+	for (size_t interval_index = 0; interval_index < cointerval->intervals_count; interval_index++) {
+		LivenessInterval *interval = &cointerval->intervals[interval_index];
 
-	for (size_t i = 0; i < cointerval->intervals_count; i++) {
-		if (cointerval->intervals[i].vreg_id == vreg_id) {
-			int phys_reg = cointerval->intervals[i].phys_reg;
-			if (phys_reg == -1)
-				return;
-			op->type = REG_PHYS;
-			op->val.tmp_index = phys_reg;
+		if (interval->vreg_id != operand->val.tmp_index)
+			continue;
+		if (interval->phys_reg == -1)
 			return;
-		}
+		operand->type = REG_PHYS;
+		operand->val.tmp_index = interval->phys_reg;
+		return;
 	}
 }
 
 void rewrite_registers(IRGraph *graph, CollectIntervals *cointerval)
 {
-	BasicBlock *current_block = graph->head;
-	while (current_block != NULL) {
-		Quadriple *current_quad = current_block->head;
-		while (current_quad != NULL) {
-			assign_physical_reg(current_quad->arg1, cointerval);
-			assign_physical_reg(current_quad->arg2, cointerval);
-			assign_physical_reg(current_quad->result, cointerval);
+	EACH_QUAD(basic_block, current_quad) {
+		assign_physical_reg(current_quad->arg1, cointerval);
+		assign_physical_reg(current_quad->arg2, cointerval);
+		assign_physical_reg(current_quad->result, cointerval);
+		if (current_quad->call)
+			for (int argument = 0; argument < current_quad->call->argument_count; argument++)
+				assign_physical_reg(current_quad->call->args[argument], cointerval);
+	}
 
-			if (current_quad == current_block->tail) {
+	for (int param = 0; param < graph->param_count; param++) {
+		int vreg = graph->param_phys[param];
+		graph->param_phys[param] = vreg;
+		for (size_t interval_index = 0; interval_index < cointerval->intervals_count; interval_index++) {
+			LivenessInterval *interval = &cointerval->intervals[interval_index];
+			if (interval->vreg_id == vreg && interval->phys_reg != -1) {
+				graph->param_phys[param] = interval->phys_reg;
 				break;
 			}
-			current_quad = current_quad->next;
 		}
-
-		current_block = current_block->next_block;
 	}
 }

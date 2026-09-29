@@ -1,5 +1,6 @@
 int main()
 {
-int a = 500;
+
+int a = 2 + 3;
 return a;
 }

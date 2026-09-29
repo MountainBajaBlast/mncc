@@ -11,6 +11,8 @@ void advance();
 struct ASTNode *parse_function();
 struct ASTNode *parse_file();
 void free_ast(struct ASTNode *node);
+struct ASTNode *parse_funcall();
+
 
 typedef enum {
 	ND_RETURN,
@@ -87,7 +89,7 @@ struct ASTNode {
 		} func;
 
 		struct {
-			ASTNode *name;
+			char *name;
 			ASTNode **arguments;
 			int argument_count;
 		} call;
@@ -101,4 +103,15 @@ struct ASTNode {
                 } UnaryOp;
 	};
 };
+
+void match(TokenNames expected);
+struct ASTNode *CreateNode(NodeTypes type);
+struct ASTNode *parse_declaration();
+struct ASTNode *parse_branching();
+struct ASTNode *parse_statement();
+struct ASTNode *parse_expression();
+struct ASTNode *parse_term();
+struct ASTNode *parse_primary();
+struct ASTNode *parse_unary();
+struct ASTNode *parse_block();
 #endif

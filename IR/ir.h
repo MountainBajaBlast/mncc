@@ -7,7 +7,7 @@ typedef enum { IR_TYPE_INT64, IR_TYPE_VOID } Types;
 
 typedef enum { VIR_REG, NUM, VAR, NONE, REG_PHYS } OpKind;
 
-typedef enum { RET, DIV, MULT, ADD, SUB, ASSIGN, JMP, JE, PHIN, CMP, TERMINATOR_NONE, UNARY } OpCode;
+typedef enum { RET, DIV, MULT, ADD, SUB, ASSIGN, JMP, JE, PHIN, CMP, TERMINATOR_NONE, UNARY, CALL } OpCode;
 
 typedef struct {
 	int result_reg;
@@ -32,11 +32,18 @@ typedef struct Operand {
 typedef struct Quadriple {
 	struct Operand *arg1;
 	struct Operand *arg2;
-	struct Operand *result;
 	OpCode operation;
+	struct Operand *result;
 	struct Quadriple *next;
 	struct Quadriple *prev;
+	struct FunCall *call;
 } Quadriple;
+
+typedef struct FunCall {
+	char FuncName[256];
+	struct Operand **args;
+	int argument_count;
+} FunCall;
 
 typedef struct BasicBlock {
 	char *label;
@@ -70,6 +77,8 @@ typedef struct IRGraph {
 	BasicBlock *current_block;
 	int block_count;
 	BasicBlock **blocks;
+	int param_count;
+	int *param_phys;
 } IRGraph;
 
 typedef struct DominatorTree {
@@ -95,6 +104,7 @@ typedef struct VerMan {
 	int symbol_count;
 	RegArr *last_regs;
 } VerMan;
+
 typedef struct IRResult {
 	struct Operand *operand;
 	BasicBlock *block;
@@ -109,12 +119,16 @@ typedef struct IRProgram {
 Operand *create_operand_num(long long value);
 Operand *create_operand_var(char *name);
 Operand *create_operand_reg(IRGraph *graph);
-Quadriple *create_quadriple(Operand *argum1, Operand *argum2, Operand *res, OpCode oper);
+Quadriple *create_quadriple(Operand *argum1, Operand *argum2, Operand *res, FunCall *call, OpCode oper);
+FunCall *create_func_call(char *name, Operand **args);
 void append_quadriple(BasicBlock *block, Quadriple *quad);
 BasicBlock *create_basic_block(char *labe);
 IRGraph *create_ir_graph(char *function_name);
 void free_basic_block(BasicBlock *block);
 void free_ir_graph(IRGraph *graph);
+BasicBlock *append_new_block(IRGraph *graph, char *label);
+void set_current_block(IRGraph *graph, BasicBlock *block);
+void free_verman(VerMan *vregs);
 void init_arr(RegArr *reg, size_t init_cap);
 VerMan *init_verman(int symbols, RegArr *regs);
 int read_reg(VerMan *var, const char *name, HashTable *table);
@@ -122,6 +136,7 @@ void write_reg(VerMan *var, const char *name, HashTable *table, int tmp_index);
 Operand *create_operand_reg_ref(int reg);
 IRResult gen_ir_expr(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph);
 IRResult gen_ir_stmt(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph);
+IRResult gen_ir_call(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph);
 IRResult gen_ir_branching(ASTNode *tree, VerMan *manager, HashTable *table, IRGraph *graph);
 IRProgram *compile_to_ir(HashTable *table, ASTNode *node);
 int dsu_eval(DominatorTree *domtree, int v);

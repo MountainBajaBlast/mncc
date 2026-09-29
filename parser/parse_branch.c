@@ -1,18 +1,5 @@
 #include "parser.h"
 
-
-struct ASTNode *parse_declaration();
-struct ASTNode *parse_branching();
-struct ASTNode *parse_statement();
-struct ASTNode *parse_file();
-struct ASTNode *parse_term();
-void advance();
-void match(TokenNames expected);
-struct ASTNode *parse_expression();
-struct ASTNode *CreateNode(NodeTypes type);
-struct ASTNode *parse_primary();
-struct ASTNode *parse_block();
-
 struct ASTNode *parse_branching()
 {
 	struct ASTNode *Node = CreateNode(ND_BRANCH);

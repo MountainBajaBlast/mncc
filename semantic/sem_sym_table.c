@@ -6,6 +6,8 @@
 
 #define HASH_TABLE_SIZE 1024
 
+static int global_symbol_seq = 0;
+
 
 HashTable *create_table(int size)
 {
@@ -13,10 +15,28 @@ HashTable *create_table(int size)
 	table->size = size;
 	table->buckets = calloc(size, sizeof(HashNode *));
 	table->symbol_count = 0;
+	table->parent = NULL;
 	return table;
 }
 
-VarSym search(HashTable *table, const char *key, int *found)
+
+HashTable *create_child_table(int size, HashTable *parent)
+{
+	HashTable *table = malloc(sizeof(HashTable));
+        table->size = size;
+        table->buckets = calloc(size, sizeof(HashNode *));
+        table->symbol_count = 0;
+        table->parent = parent;
+        return table;
+}
+
+
+
+
+
+
+
+VarSym search(HashTable *table, const char *key)
 {
 	unsigned long index = hash_djb2((unsigned char *)key) % table->size;
 
@@ -24,16 +44,20 @@ VarSym search(HashTable *table, const char *key, int *found)
 
 	while (current != NULL) {
 		if (strcmp(current->key, key) == 0) {
-			*found = 1;
 			return current->value;
 		}
 
 		current = current->next;
 	}
 
+	if (table->parent != NULL) {
+		return search(table->parent, key);
+	}
+
 	fprintf(stderr, "Семантическая ошибка переменная  '%s'  ещё не объявлена!\n", key);
 	exit(1);
 }
+
 
 void insert(HashTable *table, const char *key, VarSym value)
 {
@@ -55,7 +79,7 @@ void insert(HashTable *table, const char *key, VarSym value)
 	HashNode *new_node = calloc(1, sizeof(HashNode));
 	new_node->key = strdup(key);
 
-	value.symbol_id = table->symbol_count;
+	value.symbol_id = global_symbol_seq++;
 
 	new_node->value = value;
 
