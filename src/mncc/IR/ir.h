@@ -116,6 +116,20 @@ typedef struct IRProgram {
 	int count;
 } IRProgram;
 
+#define FOR_EACH_BLOCK(graph, blk) \
+	for (BasicBlock *blk = (graph)->head; (blk) != NULL; (blk) = (blk)->next_block)
+
+#define FOR_EACH_QUAD(blk, quad) \
+	for (Quadriple *quad = (blk)->head; (quad) != NULL; (quad) = (quad)->next)
+
+#define FOR_EACH_PRED(blk, i) for (int i = 0; i < (blk)->pred_count; i++)
+
+#define FOR_EACH_SUCC(blk, i) for (int i = 0; i < (blk)->succ_count; i++)
+
+#define FOR_EACH_PHI(blk, i) for (int i = 0; i < (blk)->phi_count; i++)
+
+#define FOR_EACH_DF(blk, i) for (int i = 0; i < (blk)->df_count; i++)
+
 Operand *create_operand_num(long long value);
 Operand *create_operand_var(char *name);
 Operand *create_operand_reg(IRGraph *graph);

@@ -41,8 +41,7 @@ void free_ir_graph(IRGraph *graph)
 
 void build_cfg(IRGraph *graph)
 {
-	for (int i = 0; i < graph->block_count; i++) {
-		BasicBlock *b = graph->blocks[i];
+	FOR_EACH_BLOCK(graph, b) {
 		switch (b->terminator) {
 		case JE:
 			bb_add_successor(b, b->true_target_je);

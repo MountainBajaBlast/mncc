@@ -7,7 +7,7 @@
 
 void df_add(BasicBlock *block, BasicBlock *x)
 {
-	for (int i = 0; i < block->df_count; i++) {
+	FOR_EACH_DF(block, i) {
 		if (block->df[i] == x)
 			return;
 	}
@@ -36,7 +36,7 @@ static void ssa_rename(IRGraph *graph, BasicBlock *block, int **versions, int *t
 {
 	int start = *pushed_idx;
 
-	for (int i = 0; i < block->phi_count; i++) {
+	FOR_EACH_PHI(block, i) {
 		int var = block->phis[i].orig_var;
 
 		int already = 0;
@@ -57,12 +57,12 @@ static void ssa_rename(IRGraph *graph, BasicBlock *block, int **versions, int *t
 		rename_push(versions, top, cap, var, ver);
 		pushed[(*pushed_idx)++] = var;
 
-		for (int j = 0; j < block->phi_count; j++)
+		FOR_EACH_PHI(block, j)
 			if (block->phis[j].orig_var == var)
 				block->phis[j].result_reg = ver;
 	}
 
-	for (Quadriple *q = block->head; q; q = q->next) {
+	FOR_EACH_QUAD(block, q) {
 		if (q->arg1 && q->arg1->type == VIR_REG && q->arg1->val.tmp_index < regs && needs_rename[q->arg1->val.tmp_index])
 			q->arg1->val.tmp_index = rename_current(versions, top, q->arg1->val.tmp_index);
 
@@ -77,17 +77,16 @@ static void ssa_rename(IRGraph *graph, BasicBlock *block, int **versions, int *t
 			pushed[(*pushed_idx)++] = r;
 		}
 	}
-	for (int i = 0; i < block->succ_count; i++) {
+	FOR_EACH_SUCC(block, i) {
 		BasicBlock *succ = block->successors[i];
-		for (int j = 0; j < succ->phi_count; j++) {
+		FOR_EACH_PHI(succ, j) {
 			if (succ->phis[j].from_label != block->id_block)
 				continue;
 			succ->phis[j].reg_index = rename_current(versions, top, succ->phis[j].orig_var);
 		}
 	}
 
-	for (int i = 0; i < graph->block_count; i++) {
-		BasicBlock *c = graph->blocks[i];
+	FOR_EACH_BLOCK(graph, c) {
 		if (c != block && c->idom == block)
 			ssa_rename(graph, c, versions, top, cap, pushed, pushed_idx, regs, needs_rename);
 	}
@@ -102,12 +101,11 @@ void into_ssa(IRGraph *graph)
 	int regs = graph->reg_count;
 
 	int *defs = calloc(regs, sizeof(int));
-	for (int i = 0; i < graph->block_count; i++) {
-		BasicBlock *b = graph->blocks[i];
-		for (Quadriple *q = b->head; q; q = q->next)
+	FOR_EACH_BLOCK(graph, b) {
+		FOR_EACH_QUAD(b, q)
 			if (q->result && q->result->type == VIR_REG && q->result->val.tmp_index < regs)
 				defs[q->result->val.tmp_index]++;
-		for (int j = 0; j < b->phi_count; j++)
+		FOR_EACH_PHI(b, j)
 			if (b->phis[j].orig_var < regs)
 				defs[b->phis[j].orig_var]++;
 	}
@@ -120,8 +118,7 @@ void into_ssa(IRGraph *graph)
 	DominatorTree *dt = create_dominator_tree(graph);
 	build_dominators(dt);
 
-	for (int i = 0; i < graph->block_count; i++) {
-		BasicBlock *b = graph->blocks[i];
+	FOR_EACH_BLOCK(graph, b) {
 		int d = dt->dfn[b->id_block];
 		b->idom = (d > 1) ? dt->block_by_dfn[dt->idom[d]] : NULL;
 	}
@@ -183,19 +180,18 @@ static void insert_before_terminator(BasicBlock *block, Quadriple *quad)
 
 void out_of_ssa(IRGraph *graph)
 {
-	for (int i = 0; i < graph->block_count; i++) {
-		BasicBlock *block = graph->blocks[i];
+	FOR_EACH_BLOCK(graph, block) {
 		if (block->phi_count == 0)
 			continue;
 
-		for (int p = 0; p < block->pred_count; p++) {
+		FOR_EACH_PRED(block, p) {
 			BasicBlock *pred = block->predecessors[p];
 			int srcs[1024];
 			int dsts[1024];
 			int temps[1024];
 			int n = 0;
 
-			for (int j = 0; j < block->phi_count; j++) {
+			FOR_EACH_PHI(block, j) {
 				if (block->phis[j].from_label != pred->id_block)
 					continue;
 				srcs[n] = block->phis[j].reg_index;

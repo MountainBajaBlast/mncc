@@ -64,13 +64,12 @@ void dsu_link(DominatorTree *domtree, int v, int w) { domtree->ancestor[w] = v; 
 
 void compute_dominance_frontier(IRGraph *graph, DominatorTree *dt)
 {
-	for (int i = 0; i < graph->block_count; i++) {
-		BasicBlock *x = graph->blocks[i];
+	FOR_EACH_BLOCK(graph, x) {
 		int dx = dt->dfn[x->id_block];
 		if (dx == 0)
 			continue;
 
-		for (int j = 0; j < x->succ_count; j++) {
+		FOR_EACH_SUCC(x, j) {
 			BasicBlock *y = x->successors[j];
 			int dy = dt->dfn[y->id_block];
 			if (dy == 0)
@@ -88,7 +87,7 @@ void compute_dominance_frontier(IRGraph *graph, DominatorTree *dt)
 
 static int block_defines(BasicBlock *b, int reg)
 {
-	for (Quadriple *q = b->head; q; q = q->next) {
+	FOR_EACH_QUAD(b, q) {
 		if (q->operation != PHIN && q->result && q->result->type == VIR_REG && q->result->val.tmp_index == reg)
 			return 1;
 	}
@@ -100,7 +99,7 @@ static int block_defines(BasicBlock *b, int reg)
 
 static int block_has_phi(BasicBlock *b, int reg)
 {
-	for (int i = 0; i < b->phi_count; i++)
+	FOR_EACH_PHI(b, i)
 		if (b->phis[i].result_reg == reg)
 			return 1;
 	return 0;
@@ -113,16 +112,16 @@ void place_phi(IRGraph *graph, DominatorTree *dt)
 		BasicBlock **queue = calloc(graph->block_count + 1, sizeof(BasicBlock *));
 		int qh = 0, qt = 0;
 
-		for (int i = 0; i < graph->block_count; i++)
-			if (block_defines(graph->blocks[i], reg))
-				queue[qt++] = graph->blocks[i];
+		FOR_EACH_BLOCK(graph, blk)
+			if (block_defines(blk, reg))
+				queue[qt++] = blk;
 
 		while (qh < qt) {
 			BasicBlock *b = queue[qh++];
-			for (int i = 0; i < b->df_count; i++) {
+			FOR_EACH_DF(b, i) {
 				BasicBlock *y = b->df[i];
 				if (!block_has_phi(y, reg)) {
-					for (int p = 0; p < y->pred_count; p++)
+					FOR_EACH_PRED(y, p)
 						bb_add_phi(y, reg, 0, y->predecessors[p]->id_block);
 					if (!in_queue[y->id_block]) {
 						in_queue[y->id_block] = 1;
@@ -132,8 +131,8 @@ void place_phi(IRGraph *graph, DominatorTree *dt)
 			}
 		}
 
-		for (int i = 0; i < graph->block_count; i++)
-			in_queue[graph->blocks[i]->id_block] = 0;
+		FOR_EACH_BLOCK(graph, blk)
+			in_queue[blk->id_block] = 0;
 		free(queue);
 	}
 	free(in_queue);

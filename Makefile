@@ -1,15 +1,15 @@
 CC = clang
-CFLAGS = -Wall -Wextra -Ilexer -Iparser -Isemantic -IIR -Ioptimizator -ILIRA -Icodegen -Icodegen/arm64
+CFLAGS = -Wall -Wextra -Isrc/mncc -Isrc/mncc/lexer -Isrc/mncc/parser -Isrc/mncc/semantic -Isrc/mncc/IR -Isrc/mncc/optimizator -Isrc/mncc/LIRA -Isrc/mncc/codegen -Isrc/mncc/codegen/arm64
 
-SRCS = main.c \
-	lexer/lexer.c \
-	parser/parser.c parser/parse_stmt.c parser/parse_expr.c parser/parse_branch.c parser/ast.c \
-	semantic/semantic.c semantic/sem_checks_func.c semantic/sem_func_table.c semantic/sem_hash_func.c semantic/sem_sym_table.c \
-	IR/ir.c IR/ir_graph.c IR/ir_basic_block.c IR/ir_operand_create.c IR/ir_phi.c IR/ir_quadriple_create.c IR/ir_reg.c IR/ir_ssa.c IR/ir_verman.c IR/dominator_ir.c \
-	optimizator/opt.c \
-	LIRA/lira.c LIRA/livenessanalysis.c LIRA/bit_vector_allocate.c LIRA/lira_intervals.c \
-	codegen/enc.c codegen/emit.c codegen/instruction.c codegen/object.c \
-	codegen/arm64/enc-func-arm64.c codegen/arm64/mach.c
+SRCS = src/main.c \
+	src/mncc/lexer/lexer.c \
+	src/mncc/parser/parser.c src/mncc/parser/parse_stmt.c src/mncc/parser/parse_expr.c src/mncc/parser/parse_branch.c src/mncc/parser/ast.c \
+	src/mncc/semantic/semantic.c src/mncc/semantic/sem_checks_func.c src/mncc/semantic/sem_func_table.c src/mncc/semantic/sem_hash_func.c src/mncc/semantic/sem_sym_table.c \
+	src/mncc/IR/ir.c src/mncc/IR/ir_graph.c src/mncc/IR/ir_basic_block.c src/mncc/IR/ir_operand_create.c src/mncc/IR/ir_phi.c src/mncc/IR/ir_quadriple_create.c src/mncc/IR/ir_reg.c src/mncc/IR/ir_ssa.c src/mncc/IR/ir_verman.c src/mncc/IR/dominator_ir.c \
+	src/mncc/optimizator/opt.c \
+	src/mncc/LIRA/lira.c src/mncc/LIRA/livenessanalysis.c src/mncc/LIRA/bit_vector_allocate.c src/mncc/LIRA/lira_intervals.c \
+	src/mncc/codegen/enc.c src/mncc/codegen/emit.c src/mncc/codegen/instruction.c src/mncc/codegen/object.c \
+	src/mncc/codegen/arm64/enc-func-arm64.c src/mncc/codegen/arm64/mach.c
 
 OBJS = $(SRCS:.c=.o)
 

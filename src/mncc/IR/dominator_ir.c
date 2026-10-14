@@ -74,7 +74,7 @@ static void dfs_pass(BasicBlock *node, DominatorTree *domtree, int *next_num)
 	domtree->dfn[node->id_block] = (*next_num)++;
 	domtree->block_by_dfn[domtree->dfn[node->id_block]] = node;
 
-	for (int i = 0; i < node->succ_count; i++) {
+	FOR_EACH_SUCC(node, i) {
 		BasicBlock *succ = node->successors[i];
 		if (domtree->dfn[succ->id_block] == 0) {
 			domtree->parent[*next_num] = domtree->dfn[node->id_block];
@@ -103,7 +103,7 @@ void build_dominators(DominatorTree *domtree)
 		BasicBlock *w_block = domtree->block_by_dfn[i];
 		int p = domtree->parent[i];
 
-		for (int j = 0; j < w_block->pred_count; j++) {
+		FOR_EACH_PRED(w_block, j) {
 			BasicBlock *pred_block = w_block->predecessors[j];
 			int v = domtree->dfn[pred_block->id_block];
 			if (v == 0)
