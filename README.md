@@ -16,38 +16,54 @@ The compiler is under development. Currently it supports: functions, function ca
 
 ## Build
 
-`make` is a build tool that reads the Makefile and runs the long clang command for you. You only need it once, to build the compiler:
+Run `make` from the project root. It reads the Makefile, calls clang, and builds the `mncc` executable in the project root:
 
 ```sh
 make
 ```
 
+To remove the executable and the object files:
+
+```sh
+make clean
+```
+
 ## Usage
 
-`mncc` is the compiler itself:
+`mncc` is the compiler.
+
+From the project root, run the built executable with `./`:
 
 ```sh
 ./mncc program.txt -o program
 ./program
 ```
-The mncc  doesn't support print function yet so use the 
+
+In another directory:
 
 ```sh
+mncc program.txt -o program
+./program
+```
+
+A print function isn't supported yet, so to see your program's result, check its exit code:
+
+```sh
+./program
 echo $?
 ```
-command to see yout program output
 
 ## Layout
 
 ```
-lexer/        lexer
-parser/       parser + AST
-semantic/     semantic analysis
-IR/           IR, CFG, SSA
-optimizator/  optimizations
-LIRA/         register allocation
-codegen/      ARM64 codegen
-main.c        entry point
+src/main.c              entry point
+src/mncc/lexer/         lexer
+src/mncc/parser/        parser + AST
+src/mncc/semantic/      semantic analysis
+src/mncc/IR/            IR, CFG, SSA
+src/mncc/optimizator/   optimizations
+src/mncc/LIRA/          register allocation
+src/mncc/codegen/       ARM64 codegen
 ```
 
 ## License
@@ -74,42 +90,55 @@ GPL-3.0.
 
 ## Сборка
 
-`make` — это программа, которая читает Makefile и сама запускает длинную команду clang вместо тебя. Она нужна один раз, чтобы собрать компилятор:
+Запустите `make` из корня проекта. Он читает Makefile, вызывает clang и создаёт исполняемый файл `mncc` в корне проекта:
 
 ```sh
 make
 ```
 
+Чтобы удалить исполняемый файл и объектные файлы:
+
+```sh
+make clean
+```
+
 ## Использование
 
-`mncc` — это сам компилятор:
+`mncc` — это компилятор. 
+
+Из корня проекта запускайте собранный файл через `./`:
 
 ```sh
 ./mncc program.txt -o program
 ./program
 ```
 
+В другой директории:
+
+```sh
+mncc program.txt -o program
+./program
+```
+
+Функции вывода пока нет, поэтому результат программы смотрится по коду возврата:
+
+```sh
+./program
+echo $?
+```
 
 ## Структура
 
 ```
-lexer/        лексер
-parser/       парсер + AST
-semantic/     семантический анализ
-IR/           IR, CFG, SSA
-optimizator/  оптимизации
-LIRA/         аллокация регистров
-codegen/      кодоген ARM64
-main.c        точка входа
+src/main.c              точка входа
+src/mncc/lexer/         лексер
+src/mncc/parser/        парсер + AST
+src/mncc/semantic/      семантический анализ
+src/mncc/IR/            IR, CFG, SSA
+src/mncc/optimizator/   оптимизации
+src/mncc/LIRA/          аллокация регистров
+src/mncc/codegen/       кодоген ARM64
 ```
-
-
-mncc ещё не поддерживает print-функции так что используйте
-
-```sh
-echo $?
-```
-команду чтобы увидеть результат вашей программы
 
 
 ## Лицензия
