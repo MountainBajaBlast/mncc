@@ -22,10 +22,24 @@ Run `make` from the project root. It reads the Makefile, calls clang, and builds
 make
 ```
 
+To install `mncc` so it can be run from any directory:
+
+```sh
+sudo make install
+```
+
+This copies the executable to `/usr/local/bin` (override with `PREFIX=/some/bin`).
+
 To remove the executable and the object files:
 
 ```sh
 make clean
+```
+
+To remove the installed copy:
+
+```sh
+sudo make uninstall
 ```
 
 ## Usage
@@ -39,7 +53,7 @@ From the project root, run the built executable with `./`:
 ./program
 ```
 
-In another directory:
+In another directory, after `sudo make install`:
 
 ```sh
 mncc program.txt -o program
@@ -96,10 +110,24 @@ GPL-3.0.
 make
 ```
 
+Чтобы установить `mncc` и запускать его из любой директории:
+
+```sh
+sudo make install
+```
+
+Копирует исполняемый файл в `/usr/local/bin` (можно изменить через `PREFIX=/some/bin`).
+
 Чтобы удалить исполняемый файл и объектные файлы:
 
 ```sh
 make clean
+```
+
+Чтобы удалить установленную копию:
+
+```sh
+sudo make uninstall
 ```
 
 ## Использование
@@ -113,7 +141,7 @@ make clean
 ./program
 ```
 
-В другой директории:
+В другой директории, после `sudo make install`:
 
 ```sh
 mncc program.txt -o program

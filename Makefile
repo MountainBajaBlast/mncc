@@ -13,11 +13,21 @@ SRCS = src/main.c \
 
 OBJS = $(SRCS:.c=.o)
 
+PREFIX ?= /usr/local/bin
+
 mncc: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+install: mncc
+	install -m 755 mncc $(PREFIX)/mncc
+
+uninstall:
+	rm -f $(PREFIX)/mncc
+
 clean:
 	rm -f mncc $(OBJS)
+
+.PHONY: clean install uninstall
