@@ -34,7 +34,7 @@ void greedy_allocate(CollectIntervals *cointerval, PhysRegTrack *reg_track)
 
 static void assign_physical_reg(Operand *operand, CollectIntervals *cointerval)
 {
-	if (!operand || operand->type == NUM)
+	if (!operand || operand->type != VIR_REG)
 		return;
 
 	for (size_t interval_index = 0; interval_index < cointerval->intervals_count; interval_index++) {
