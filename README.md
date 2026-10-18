@@ -22,7 +22,7 @@ Run `make` from the project root. It reads the Makefile, calls clang, builds the
 make
 ```
 
-`make` installs to `/usr/local/bin` if it is writable, otherwise to `~/.local/bin`. Override the location with `PREFIX=/some/bin make`. If the install directory is not in your `PATH`, `make` prints the line to add to your shell profile.
+`make` installs to `/usr/local/bin`, which is already in `PATH` on macOS, so `mncc` works from any directory right away. If `/usr/local/bin` is not writable, it asks for `sudo` once. Override the location with `PREFIX=/some/bin make`.
 
 To only build without installing:
 
@@ -110,7 +110,7 @@ GPL-3.0.
 make
 ```
 
-`make` ставит файл в `/usr/local/bin`, если туда есть запись, иначе в `~/.local/bin`. Можно указать свой путь: `PREFIX=/some/bin make`. Если каталог установки не в `PATH`, `make` напечатает строку, которую надо добавить в профиль шелла.
+`make` ставит файл в `/usr/local/bin`, а этот каталог уже есть в `PATH` на macOS, поэтому `mncc` сразу работает из любой директории. Если в `/usr/local/bin` нет прав на запись, один раз спросит `sudo`. Можно указать свой путь: `PREFIX=/some/bin make`.
 
 Чтобы только собрать, без установки:
 
