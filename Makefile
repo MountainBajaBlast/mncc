@@ -13,7 +13,12 @@ SRCS = src/main.c \
 
 OBJS = $(SRCS:.c=.o)
 
-PREFIX ?= /usr/local/bin
+# Where to install mncc. Prefer /usr/local/bin if writable, otherwise ~/.local/bin.
+PREFIX ?= $(shell if [ -w /usr/local/bin ] 2>/dev/null; then echo /usr/local/bin; else echo $$HOME/.local/bin; fi)
+
+.DEFAULT_GOAL := all
+
+all: install
 
 mncc: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
@@ -22,7 +27,14 @@ mncc: $(OBJS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 install: mncc
+	mkdir -p $(PREFIX)
 	install -m 755 mncc $(PREFIX)/mncc
+	@echo "installed mncc -> $(PREFIX)/mncc"
+	@case ":$$PATH:" in \
+		*":$(PREFIX):"*) ;; \
+		*) echo "WARNING: $(PREFIX) is not in your PATH. Add this to your shell profile:"; \
+		   echo "  export PATH=\"$(PREFIX):\$$PATH\"";; \
+	esac
 
 uninstall:
 	rm -f $(PREFIX)/mncc
@@ -30,4 +42,4 @@ uninstall:
 clean:
 	rm -f mncc $(OBJS)
 
-.PHONY: clean install uninstall
+.PHONY: all install uninstall clean

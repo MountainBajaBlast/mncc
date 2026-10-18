@@ -16,19 +16,19 @@ The compiler is under development. Currently it supports: functions, function ca
 
 ## Build
 
-Run `make` from the project root. It reads the Makefile, calls clang, and builds the `mncc` executable in the project root:
+Run `make` from the project root. It reads the Makefile, calls clang, builds the `mncc` executable, and installs it so you can run `mncc` from any directory:
 
 ```sh
 make
 ```
 
-To install `mncc` so it can be run from any directory:
+`make` installs to `/usr/local/bin` if it is writable, otherwise to `~/.local/bin`. Override the location with `PREFIX=/some/bin make`. If the install directory is not in your `PATH`, `make` prints the line to add to your shell profile.
+
+To only build without installing:
 
 ```sh
-sudo make install
+make mncc
 ```
-
-This copies the executable to `/usr/local/bin` (override with `PREFIX=/some/bin`).
 
 To remove the executable and the object files:
 
@@ -39,7 +39,7 @@ make clean
 To remove the installed copy:
 
 ```sh
-sudo make uninstall
+make uninstall
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ From the project root, run the built executable with `./`:
 ./program
 ```
 
-In another directory, after `sudo make install`:
+In another directory, after `make`:
 
 ```sh
 mncc program.txt -o program
@@ -104,19 +104,19 @@ GPL-3.0.
 
 ## Сборка
 
-Запустите `make` из корня проекта. Он читает Makefile, вызывает clang и создаёт исполняемый файл `mncc` в корне проекта:
+Запустите `make` из корня проекта. Он читает Makefile, вызывает clang, собирает исполняемый файл `mncc` и ставит его так, что `mncc` можно запускать из любой директории:
 
 ```sh
 make
 ```
 
-Чтобы установить `mncc` и запускать его из любой директории:
+`make` ставит файл в `/usr/local/bin`, если туда есть запись, иначе в `~/.local/bin`. Можно указать свой путь: `PREFIX=/some/bin make`. Если каталог установки не в `PATH`, `make` напечатает строку, которую надо добавить в профиль шелла.
+
+Чтобы только собрать, без установки:
 
 ```sh
-sudo make install
+make mncc
 ```
-
-Копирует исполняемый файл в `/usr/local/bin` (можно изменить через `PREFIX=/some/bin`).
 
 Чтобы удалить исполняемый файл и объектные файлы:
 
@@ -127,7 +127,7 @@ make clean
 Чтобы удалить установленную копию:
 
 ```sh
-sudo make uninstall
+make uninstall
 ```
 
 ## Использование
@@ -141,7 +141,7 @@ sudo make uninstall
 ./program
 ```
 
-В другой директории, после `sudo make install`:
+В другой директории, после `make`:
 
 ```sh
 mncc program.txt -o program
