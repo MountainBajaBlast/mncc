@@ -39,6 +39,7 @@ static int count_instructions(IRGraph *graph)
 	count += graph->param_count;
 	EACH_BLOCK(block) {
 		count++;
+		int emitted_jump = 0;
 		for (Quadriple *quad = block->head; quad; quad = quad->next) {
 			count++;
 			if (quad->operation == CALL) {
@@ -47,7 +48,11 @@ static int count_instructions(IRGraph *graph)
 			}
 			if (quad->operation == RET)
 				ret_count++;
+			if (quad->operation == JMP || quad->operation == JE)
+				emitted_jump = 1;
 		}
+		if (!emitted_jump && block->terminator == JMP && block->jmp_target)
+			count++;
 	}
 	if (has_call)
 		count += 1 + ret_count;
